@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Let the composer check scripts check everything
+composer check

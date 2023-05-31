@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# note: expected to be called by composer which adds vendor/bin to the path
+
+echo "Checking PSR-12 standard"
+phpcs --standard=./contrib/phpcs-ruleset.xml
+if [ $? != 0 ]
+then
+    cat <<EOF
+phpcs failed.
+
+------ Tips: -------
+
+ - Run code sniffer by itself:
+
+     composer run cs-check
+
+ - Auto-fix:
+
+     composer run cs-fix
+
+EOF
+    exit 1
+fi
