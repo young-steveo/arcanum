@@ -7,23 +7,27 @@ namespace Arcanum\Test\Cabinet;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
+use Arcanum\Test\Cabinet\Stub\SimpleService;
+use Arcanum\Test\Cabinet\Stub\SimpleDependency;
 
 #[CoversClass(\Arcanum\Cabinet\Container::class)]
-#[UsesClass(\Arcanum\Cabinet\OutOfBounds::class)]
-#[UsesClass(\Arcanum\Cabinet\InvalidKey::class)]
+#[UsesClass(\Arcanum\Cabinet\Resolver::class)]
 #[UsesClass(\Arcanum\Cabinet\SimpleProvider::class)]
+#[UsesClass(\Arcanum\Cabinet\Error\OutOfBounds::class)]
+#[UsesClass(\Arcanum\Cabinet\Error\InvalidKey::class)]
 final class ContainerTest extends TestCase
 {
     public function testContainerImplementsArrayAccess(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
+        $service = new SimpleService(new SimpleDependency());
 
         // Act
-        $container['foo'] = 'bar';
+        $container[SimpleService::class] = $service;
 
         // Assert
-        $this->assertEquals('bar', $container['foo']);
+        $this->assertSame($service, $container[SimpleService::class]);
     }
 
     public function testContainerThrowsOutOfBoundsIfArrayAccessOffsetDoesNotExist(): void
@@ -32,23 +36,23 @@ final class ContainerTest extends TestCase
         $container = new \Arcanum\Cabinet\Container();
 
         // Assert
-        $this->expectException(\Arcanum\Cabinet\OutOfBounds::class);
+        $this->expectException(\Arcanum\Cabinet\Error\OutOfBounds::class);
 
         // Act
-        $container['foo']; /** @phpstan-ignore-line */
+        $container[SimpleService::class]; /** @phpstan-ignore-line */
     }
 
     public function testContainerOffsetUnset(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
-        $container['foo'] = 'bar';
+        $container[SimpleService::class] = new SimpleService(new SimpleDependency());
 
         // Act
-        unset($container['foo']);
+        unset($container[SimpleService::class]);
 
         // Assert
-        $this->assertFalse(isset($container['foo']));
+        $this->assertFalse(isset($container[SimpleService::class]));
     }
 
     public function testContainerOnlyAcceptsStringKeys(): void
@@ -57,7 +61,7 @@ final class ContainerTest extends TestCase
         $container = new \Arcanum\Cabinet\Container();
 
         // Assert
-        $this->expectException(\Arcanum\Cabinet\InvalidKey::class);
+        $this->expectException(\Arcanum\Cabinet\Error\InvalidKey::class);
 
         // Act
         $container[0] = 'bar'; /** @phpstan-ignore-line */
@@ -69,7 +73,7 @@ final class ContainerTest extends TestCase
         $container = new \Arcanum\Cabinet\Container();
 
         // Assert
-        $this->expectException(\Arcanum\Cabinet\InvalidKey::class);
+        $this->expectException(\Arcanum\Cabinet\Error\InvalidKey::class);
 
         // Act
         $container[0]; /** @phpstan-ignore-line */
@@ -79,13 +83,14 @@ final class ContainerTest extends TestCase
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
-        $container['foo'] = 'bar';
+        $service = new SimpleService(new SimpleDependency());
+        $container[SimpleService::class] = $service;
 
         // Act
-        $result = $container->get('foo');
+        $result = $container->get(SimpleService::class);
 
         // Assert
-        $this->assertEquals('bar', $result);
+        $this->assertSame($service, $result);
     }
 
     public function testContainerGetThrowsOutOfBoundsIfServiceDoesNotExist(): void
@@ -94,20 +99,20 @@ final class ContainerTest extends TestCase
         $container = new \Arcanum\Cabinet\Container();
 
         // Assert
-        $this->expectException(\Arcanum\Cabinet\OutOfBounds::class);
+        $this->expectException(\Arcanum\Cabinet\Error\OutOfBounds::class);
 
         // Act
-        $container->get('foo');
+        $container->get(SimpleService::class);
     }
 
     public function testContainerHas(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
-        $container['foo'] = 'bar';
+        $container[SimpleService::class] = new SimpleService(new SimpleDependency());
 
         // Act
-        $result = $container->has('foo');
+        $result = $container->has(SimpleService::class);
 
         // Assert
         $this->assertTrue($result);
@@ -116,6 +121,9 @@ final class ContainerTest extends TestCase
     public function testContainerProvider(): void
     {
         // Arrange
+
+        $service = new SimpleService(new SimpleDependency());
+
         /** @var \Arcanum\Cabinet\Provider&\PHPUnit\Framework\MockObject\MockObject */
         $provider = $this->getMockBuilder(\Arcanum\Cabinet\Provider::class)
             ->onlyMethods(['__invoke'])
@@ -123,41 +131,70 @@ final class ContainerTest extends TestCase
 
         $provider->expects($this->once())
             ->method('__invoke')
-            ->willReturn('bar');
+            ->willReturn($service);
 
         $container = new \Arcanum\Cabinet\Container();
 
         // Act
-        $container->provider('foo', $provider);
-        $result = $container->get('foo');
+        $container->provider(SimpleService::class, $provider);
+        $result = $container->get(SimpleService::class);
 
         // Assert
-        $this->assertEquals('bar', $result);
+        $this->assertSame($service, $result);
     }
 
     public function testContainerFactory(): void
     {
         // Arrange
+        $service = new SimpleService(new SimpleDependency());
         $container = new \Arcanum\Cabinet\Container();
-        $container->factory('foo', fn() => 'bar');
+        $container->factory(SimpleService::class, fn() => $service);
 
         // Act
-        $result = $container->get('foo');
+        $result = $container->get(SimpleService::class);
 
         // Assert
-        $this->assertEquals('bar', $result);
+        $this->assertSame($service, $result);
     }
 
     public function testContainerService(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
-        $container->service('foo', 'bar');
+        $container->service(SimpleService::class);
 
         // Act
-        $result = $container->get('foo');
+        $result = $container->get(SimpleService::class);
 
         // Assert
-        $this->assertEquals('bar', $result);
+        $this->assertInstanceOf(SimpleService::class, $result);
+        $this->assertSame($container->get(SimpleService::class), $result);
+    }
+
+    public function testResolveDependencies(): void
+    {
+        // Arrange
+        $container = new \Arcanum\Cabinet\Container();
+        $container->service(SimpleService::class);
+        $container->service(SimpleDependency::class);
+
+        // Act
+        $result = $container->get(SimpleService::class);
+
+        // Assert
+        $this->assertInstanceOf(SimpleService::class, $result);
+    }
+
+    public function testResolveDependenciesNotRegisteredButFindable(): void
+    {
+        // Arrange
+        $container = new \Arcanum\Cabinet\Container();
+        $container->service(SimpleService::class);
+
+        // Act
+        $result = $container->get(SimpleService::class);
+
+        // Assert
+        $this->assertInstanceOf(SimpleService::class, $result);
     }
 }

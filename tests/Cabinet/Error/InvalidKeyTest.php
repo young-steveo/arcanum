@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Cabinet;
+namespace Arcanum\Test\Cabinet\Error;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(\Arcanum\Cabinet\InvalidKey::class)]
+#[CoversClass(\Arcanum\Cabinet\Error\InvalidKey::class)]
 final class InvalidKeyTest extends TestCase
 {
     public function testInvalidKey(): void
     {
         // Arrange
-        $InvalidKey = new \Arcanum\Cabinet\InvalidKey('foo');
+        $invalidKey = new \Arcanum\Cabinet\Error\InvalidKey('foo');
 
         // Act
-        $message = $InvalidKey->getMessage();
+        $message = $invalidKey->getMessage();
 
         // Assert
         $this->assertEquals('Invalid Key: foo', $message);
