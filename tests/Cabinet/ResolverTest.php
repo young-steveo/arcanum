@@ -16,7 +16,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
 #[UsesClass(\Arcanum\Cabinet\Error\UnresolvableUnionType::class)]
 final class ResolverTest extends TestCase
 {
-    public function testResolverCanResolveClosure(): void
+    public function testClosure(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -29,7 +29,7 @@ final class ResolverTest extends TestCase
         $this->assertInstanceOf(\stdClass::class, $resolved);
     }
 
-    public function testResolverCanResolveClassWithNoConstructor(): void
+    public function testClassWithNoConstructor(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -42,7 +42,7 @@ final class ResolverTest extends TestCase
         $this->assertInstanceOf(\Arcanum\Test\Cabinet\Stub\SimpleService::class, $resolved);
     }
 
-    public function testResolverCanResolveClassWithConstructorThatHasNoParameters(): void
+    public function testClassWithConstructorThatHasNoParameters(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -55,7 +55,7 @@ final class ResolverTest extends TestCase
         $this->assertInstanceOf(\Arcanum\Test\Cabinet\Stub\ConcreteService::class, $resolved);
     }
 
-    public function testResolverCanResolveClassWithDefaultPrimitives(): void
+    public function testClassWithDefaultPrimitives(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -76,7 +76,7 @@ final class ResolverTest extends TestCase
         $this->assertNull($resolved->getNull());
     }
 
-    public function testResolverCanResolveVariadicPrimitives(): void
+    public function testVariadicPrimitives(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -90,7 +90,7 @@ final class ResolverTest extends TestCase
         $this->assertSame([], $resolved->strings);
     }
 
-    public function testResolverCanResolveDefaultValuesWithNoTypeHint(): void
+    public function testDefaultValuesWithNoTypeHint(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -104,7 +104,7 @@ final class ResolverTest extends TestCase
         $this->assertSame(0, $resolved->test);
     }
 
-    public function testResolverCanResolveParentKeywordInDependencies(): void
+    public function testParentKeywordInDependencies(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -118,20 +118,7 @@ final class ResolverTest extends TestCase
         $this->assertInstanceOf(\Arcanum\Test\Cabinet\Stub\SimpleDependency::class, $resolved->dependency);
     }
 
-    // public function testResolverCannotResolveUnknownService(): void
-    // {
-    //     // Arrange
-    //     $container = new \Arcanum\Cabinet\Container();
-    //     $resolver = \Arcanum\Cabinet\Resolver::forContainer($container);
-
-    //     // Act
-    //     $this->expectException(\Arcanum\Cabinet\Error\UnknownClass::class);
-
-    //     // Assert
-    //     $resolver->resolve(\Arcanum\Test\Cabinet\Stub\UnknownService::class);
-    // }
-
-    public function testResolverCannotResolveAnUninstantiableClass(): void
+    public function testAnUninstantiableClass(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -144,7 +131,7 @@ final class ResolverTest extends TestCase
         $resolver->resolve(\Arcanum\Test\Cabinet\Stub\AbstractService::class);
     }
 
-    public function testResolverCannotResolveVariadicClassService(): void
+    public function testVariadicClassService(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -157,7 +144,7 @@ final class ResolverTest extends TestCase
         $resolver->resolve(\Arcanum\Test\Cabinet\Stub\VariadicClassService::class);
     }
 
-    public function testResolverCannotResolveClassWithPrimitivesThatHaveNoDefaults(): void
+    public function testClassWithPrimitivesThatHaveNoDefaults(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -170,7 +157,7 @@ final class ResolverTest extends TestCase
         $resolver->resolve(\Arcanum\Test\Cabinet\Stub\ServiceWithNoDefaultPrimitive::class);
     }
 
-    public function testResolverCannotResolveCallableFunction(): void
+    public function testCallableFunction(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
@@ -183,7 +170,7 @@ final class ResolverTest extends TestCase
         $resolver->resolve(\Arcanum\Test\Cabinet\Stub\FunctionService::class);
     }
 
-    public function testResolverCannotResolveUnionType(): void
+    public function testUnionType(): void
     {
         // Arrange
         $container = new \Arcanum\Cabinet\Container();
