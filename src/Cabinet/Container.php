@@ -11,12 +11,10 @@ use Psr\Container\ContainerInterface;
  */
 class Container implements \ArrayAccess, ContainerInterface
 {
+    /**
+     * Resolver used to build classes.
+     */
     protected Resolver $resolver;
-
-    public function __construct()
-    {
-        $this->resolver = Resolver::forContainer($this);
-    }
 
     /**
      * @var array<class-string, Provider>
@@ -24,19 +22,42 @@ class Container implements \ArrayAccess, ContainerInterface
     protected array $providers = [];
 
     /**
-     * @var array<class-string, mixed>
+     * Container uses a resolver to instantiate services.
      */
-    protected array $container = [];
+    protected function __construct(Resolver $resolver = null)
+    {
+        $this->resolver = $resolver ?? Resolver::forContainer($this);
+    }
+
+    /**
+     * Create a new container.
+     */
+    public static function create(): self
+    {
+        return new self();
+    }
+
+    /**
+     * Create a new container from a resolver.
+     */
+    public static function fromResolver(Resolver $resolver): self
+    {
+        return new self($resolver);
+    }
 
     /**
      * Register a service on the container.
      *
      * @param class-string $serviceName
+     * @param class-string|null $implementation
      */
-    public function service(string $serviceName): void
+    public function service(string $serviceName, string|null $implementation = null): void
     {
-        $this->factory($serviceName, function (Container $container) use ($serviceName) {
-            return $container->resolver->resolve($serviceName);
+        if ($implementation === null) {
+            $implementation = $serviceName;
+        }
+        $this->factory($serviceName, function (Container $container) use ($implementation) {
+            return $container->resolver->resolve($implementation);
         });
     }
 
@@ -61,55 +82,96 @@ class Container implements \ArrayAccess, ContainerInterface
     }
 
     /**
+     * Register a service instance on the container.
+     *
+     * @param class-string $serviceName
+     */
+    public function instance(string $serviceName, mixed $instance): void
+    {
+        $this->factory($serviceName, fn () => $instance);
+    }
+
+    /**
+     * Register a prototype on the container.
+     *
+     * The container will create a new instance
+     * of the service each time it is requested.
+     *
+     * @param class-string $serviceName
+     */
+    public function prototype(string $serviceName): void
+    {
+        $this->prototypeFactory($serviceName, function (Container $container) use ($serviceName) {
+            return $container->resolver->resolve($serviceName);
+        });
+    }
+
+    /**
+     * Register a prototype factory on the container.
+     *
+     * The container will create a new instance
+     * of the service each time it is requested.
+     *
+     * @param class-string $serviceName
+     */
+    public function prototypeFactory(string $serviceName, \Closure $factory): void
+    {
+        $this->provider($serviceName, PrototypeProvider::fromFactory($factory));
+    }
+
+    /**
      * ArrayAccess methods
      */
 
     /**
      * offsetSet
+     *
+     * @param class-string $offset
      */
     public function offsetSet($offset, $value): void
     {
         if (!is_string($offset)) {
             throw new Error\InvalidKey("Invalid key type: " . gettype($offset));
         }
-        $this->container[$offset] = $value;
+        $this->providers[$offset] = SimpleProvider::fromFactory(fn() => $value);
     }
 
     /**
      * offsetExists
+     *
+     * @param class-string $offset
      */
     public function offsetExists($offset): bool
     {
-        return isset($this->container[$offset]);
+        return isset($this->providers[$offset]);
     }
 
     /**
      * offsetUnset
+     *
+     * @param class-string $offset
      */
     public function offsetUnset($offset): void
     {
-        unset($this->container[$offset]);
+        unset($this->providers[$offset]);
     }
 
     /**
      * offsetGet
+     *
+     * @param class-string $offset
      */
     public function offsetGet($offset): mixed
     {
         if (!is_string($offset)) {
             throw new Error\InvalidKey("Invalid key type: " . gettype($offset));
         }
-        if (isset($this->container[$offset])) {
-            return $this->container[$offset];
-        }
 
-        if (isset($this->providers[$offset])) {
-            $this->container[$offset] = $this->providers[$offset]($this);
-        } else {
-            throw new Error\OutOfBounds("No entry was found for this identifier: $offset");
+        $provider = $this->providers[$offset] ?? new NullProvider();
+        if ($instance = $provider($this)) {
+            return $instance;
         }
-
-        return $this->container[$offset];
+        throw new Error\OutOfBounds("No entry was found for this identifier: $offset");
     }
 
     /**

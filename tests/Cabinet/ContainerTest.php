@@ -7,61 +7,100 @@ namespace Arcanum\Test\Cabinet;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Arcanum\Test\Cabinet\Stub\SimpleService;
-use Arcanum\Test\Cabinet\Stub\SimpleDependency;
+use Arcanum\Test\Cabinet\Stub;
+use Arcanum\Cabinet\Error;
+use Arcanum\Cabinet\Container;
 
-#[CoversClass(\Arcanum\Cabinet\Container::class)]
-#[UsesClass(\Arcanum\Cabinet\Resolver::class)]
+#[CoversClass(Container::class)]
 #[UsesClass(\Arcanum\Cabinet\SimpleProvider::class)]
-#[UsesClass(\Arcanum\Cabinet\Error\OutOfBounds::class)]
-#[UsesClass(\Arcanum\Cabinet\Error\InvalidKey::class)]
+#[UsesClass(\Arcanum\Cabinet\PrototypeProvider::class)]
+#[UsesClass(\Arcanum\Cabinet\NullProvider::class)]
+#[UsesClass(Error\OutOfBounds::class)]
+#[UsesClass(Error\InvalidKey::class)]
 final class ContainerTest extends TestCase
 {
     public function testContainerImplementsArrayAccess(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
-        $service = new SimpleService(new SimpleDependency());
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
+
+        $service = new Stub\SimpleService(new Stub\SimpleDependency());
 
         // Act
-        $container[SimpleService::class] = $service;
+        $container[Stub\SimpleService::class] = $service;
 
         // Assert
-        $this->assertSame($service, $container[SimpleService::class]);
+        $this->assertSame($service, $container[Stub\SimpleService::class]);
     }
 
     public function testContainerThrowsOutOfBoundsIfArrayAccessOffsetDoesNotExist(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
 
         // Assert
-        $this->expectException(\Arcanum\Cabinet\Error\OutOfBounds::class);
+        $this->expectException(Error\OutOfBounds::class);
 
         // Act
-        $container[SimpleService::class]; /** @phpstan-ignore-line */
+        $container[Stub\SimpleService::class]; /** @phpstan-ignore-line */
     }
 
     public function testContainerOffsetUnset(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
-        $container[SimpleService::class] = new SimpleService(new SimpleDependency());
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
+        $container[Stub\SimpleService::class] = new Stub\SimpleService(new Stub\SimpleDependency());
 
         // Act
-        unset($container[SimpleService::class]);
+        unset($container[Stub\SimpleService::class]);
 
         // Assert
-        $this->assertFalse(isset($container[SimpleService::class]));
+        $this->assertFalse(isset($container[Stub\SimpleService::class]));
     }
 
     public function testContainerOnlyAcceptsStringKeys(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
 
         // Assert
-        $this->expectException(\Arcanum\Cabinet\Error\InvalidKey::class);
+        $this->expectException(Error\InvalidKey::class);
 
         // Act
         $container[0] = 'bar'; /** @phpstan-ignore-line */
@@ -70,10 +109,19 @@ final class ContainerTest extends TestCase
     public function testContainerCannotAccessNonStringKey(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
 
         // Assert
-        $this->expectException(\Arcanum\Cabinet\Error\InvalidKey::class);
+        $this->expectException(Error\InvalidKey::class);
 
         // Act
         $container[0]; /** @phpstan-ignore-line */
@@ -82,12 +130,21 @@ final class ContainerTest extends TestCase
     public function testContainerGetService(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
-        $service = new SimpleService(new SimpleDependency());
-        $container[SimpleService::class] = $service;
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
+        $service = new Stub\SimpleService(new Stub\SimpleDependency());
+        $container[Stub\SimpleService::class] = $service;
 
         // Act
-        $result = $container->get(SimpleService::class);
+        $result = $container->get(Stub\SimpleService::class);
 
         // Assert
         $this->assertSame($service, $result);
@@ -96,23 +153,41 @@ final class ContainerTest extends TestCase
     public function testContainerGetThrowsOutOfBoundsIfServiceDoesNotExist(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
 
         // Assert
-        $this->expectException(\Arcanum\Cabinet\Error\OutOfBounds::class);
+        $this->expectException(Error\OutOfBounds::class);
 
         // Act
-        $container->get(SimpleService::class);
+        $container->get(Stub\SimpleService::class);
     }
 
     public function testContainerHas(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
-        $container[SimpleService::class] = new SimpleService(new SimpleDependency());
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
+        $container[Stub\SimpleService::class] = new Stub\SimpleService(new Stub\SimpleDependency());
 
         // Act
-        $result = $container->has(SimpleService::class);
+        $result = $container->has(Stub\SimpleService::class);
 
         // Assert
         $this->assertTrue($result);
@@ -122,7 +197,7 @@ final class ContainerTest extends TestCase
     {
         // Arrange
 
-        $service = new SimpleService(new SimpleDependency());
+        $service = new Stub\SimpleService(new Stub\SimpleDependency());
 
         /** @var \Arcanum\Cabinet\Provider&\PHPUnit\Framework\MockObject\MockObject */
         $provider = $this->getMockBuilder(\Arcanum\Cabinet\Provider::class)
@@ -133,11 +208,20 @@ final class ContainerTest extends TestCase
             ->method('__invoke')
             ->willReturn($service);
 
-        $container = new \Arcanum\Cabinet\Container();
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
 
         // Act
-        $container->provider(SimpleService::class, $provider);
-        $result = $container->get(SimpleService::class);
+        $container->provider(Stub\SimpleService::class, $provider);
+        $result = $container->get(Stub\SimpleService::class);
 
         // Assert
         $this->assertSame($service, $result);
@@ -146,12 +230,22 @@ final class ContainerTest extends TestCase
     public function testContainerFactory(): void
     {
         // Arrange
-        $service = new SimpleService(new SimpleDependency());
-        $container = new \Arcanum\Cabinet\Container();
-        $container->factory(SimpleService::class, fn() => $service);
+        $service = new Stub\SimpleService(new Stub\SimpleDependency());
+
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
 
         // Act
-        $result = $container->get(SimpleService::class);
+        $container->factory(Stub\SimpleService::class, fn() => $service);
+        $result = $container->get(Stub\SimpleService::class);
 
         // Assert
         $this->assertSame($service, $result);
@@ -160,41 +254,174 @@ final class ContainerTest extends TestCase
     public function testContainerService(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
-        $container->service(SimpleService::class);
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->once())
+            ->method('resolve')
+            ->with(Stub\SimpleService::class)
+            ->willReturn(new Stub\SimpleService(new Stub\SimpleDependency()));
+
+        $container = Container::fromResolver($resolver);
+        $container->service(Stub\SimpleService::class);
 
         // Act
-        $result = $container->get(SimpleService::class);
+        $result = $container->get(Stub\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(SimpleService::class, $result);
-        $this->assertSame($container->get(SimpleService::class), $result);
+        $this->assertInstanceOf(Stub\SimpleService::class, $result);
+        $this->assertSame($container->get(Stub\SimpleService::class), $result);
     }
 
     public function testResolveDependencies(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
-        $container->service(SimpleService::class);
-        $container->service(SimpleDependency::class);
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->once())
+            ->method('resolve')
+            ->with(Stub\SimpleService::class)
+            ->willReturn(new Stub\SimpleService(new Stub\SimpleDependency()));
+
+        $container = Container::fromResolver($resolver);
+        $container->service(Stub\SimpleService::class);
+        $container->service(Stub\SimpleDependency::class);
 
         // Act
-        $result = $container->get(SimpleService::class);
+        $result = $container->get(Stub\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(SimpleService::class, $result);
+        $this->assertInstanceOf(Stub\SimpleService::class, $result);
     }
 
     public function testResolveDependenciesNotRegisteredButFindable(): void
     {
         // Arrange
-        $container = new \Arcanum\Cabinet\Container();
-        $container->service(SimpleService::class);
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->once())
+            ->method('resolve')
+            ->with(Stub\SimpleService::class)
+            ->willReturn(new Stub\SimpleService(new Stub\SimpleDependency()));
+
+        $container = Container::fromResolver($resolver);
+        $container->service(Stub\SimpleService::class);
 
         // Act
-        $result = $container->get(SimpleService::class);
+        $result = $container->get(Stub\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(SimpleService::class, $result);
+        $this->assertInstanceOf(Stub\SimpleService::class, $result);
+    }
+
+    public function testRegisterAnInstance(): void
+    {
+        // Arrange
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
+        $instance = new Stub\SimpleService(new Stub\SimpleDependency());
+        $container->instance(Stub\SimpleService::class, $instance);
+
+        // Act
+        $result = $container->get(Stub\SimpleService::class);
+
+        // Assert
+        $this->assertSame($instance, $result);
+    }
+
+    public function testPrototype(): void
+    {
+        // Arrange
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->exactly(2))
+            ->method('resolve')
+            ->with(Stub\SimpleService::class)
+            ->willReturnCallback(function () {
+                return new Stub\SimpleService(new Stub\SimpleDependency());
+            });
+
+        $container = Container::fromResolver($resolver);
+        $container->prototype(Stub\SimpleService::class);
+
+        // Act
+        $result = $container->get(Stub\SimpleService::class);
+
+        // Assert
+        $this->assertInstanceOf(Stub\SimpleService::class, $result);
+        $this->assertNotSame($container->get(Stub\SimpleService::class), $result);
+    }
+
+    public function testPrototypeFactory(): void
+    {
+        // Arrange
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
+        $container->prototypeFactory(
+            serviceName: Stub\SimpleService::class,
+            factory: fn() => new Stub\SimpleService(new Stub\SimpleDependency())
+        );
+
+        // Act
+        $result = $container->get(Stub\SimpleService::class);
+
+        // Assert
+        $this->assertInstanceOf(Stub\SimpleService::class, $result);
+        $this->assertNotSame($container->get(Stub\SimpleService::class), $result);
+    }
+
+    public function testRegisterConcreteImplementationOfInterface(): void
+    {
+        // Arrange
+        /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['resolve'])
+            ->getMock();
+
+        $resolver->expects($this->once())
+            ->method('resolve')
+            ->with(Stub\ConcreteService::class)
+            ->willReturnCallback(fn() => new Stub\ConcreteService());
+
+        $container = Container::fromResolver($resolver);
+        $container->service(Stub\ServiceInterface::class, Stub\ConcreteService::class);
+
+        // Act
+        $result = $container->get(Stub\ServiceInterface::class);
+
+        // Assert
+        $this->assertInstanceOf(Stub\ConcreteService::class, $result);
     }
 }

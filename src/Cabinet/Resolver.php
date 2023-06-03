@@ -6,11 +6,24 @@ namespace Arcanum\Cabinet;
 
 class Resolver
 {
+    /**
+     * List of Cabinet\EventDispatcher instances.
+     *
+     * @var array<class-string, EventDispatcher>
+     */
+    protected array $eventDispatchers = [];
+
+    /**
+     * Resolver uses a container to resolve dependencies.
+     */
     private function __construct(
         private Container $container
     ) {
     }
 
+    /**
+     * Create a new resolver.
+     */
     public static function forContainer(Container $container): self
     {
         return new self($container);
@@ -20,14 +33,22 @@ class Resolver
      * Resolve a service from the container.
      *
      * @template T of object
-     * @param class-string<T>|callable(Container): T $serviceName
+     * @param class-string<T>|(callable(Container): T) $serviceName
      * @return T
      */
-    public function resolve(string|callable $serviceName): mixed
+    public function resolve(string|callable $serviceName, bool $isDependency = false): mixed
     {
         // To resolve a callable, we just call it with the container.
         if (is_callable($serviceName)) {
-            return $serviceName($this->container);
+            /** @var T */
+            $instance = $serviceName($this->container);
+            return $this->finalize($instance);
+        }
+
+        // first try to get the service from the container
+        if ($isDependency && $this->container->has($serviceName)) {
+            /** @var T */
+            return $this->container->get($serviceName);
         }
 
         $image = new \ReflectionClass($serviceName);
@@ -41,14 +62,14 @@ class Resolver
 
         // If it has no constructor, we can just instantiate it.
         if ($constructor === null) {
-            return new $serviceName();
+            return $this->finalize(new $serviceName());
         }
 
         $parameters = $constructor->getParameters();
 
         // If it has a constructor, but no parameters, we can just instantiate it.
         if (count($parameters) === 0) {
-            return new $serviceName();
+            return $this->finalize(new $serviceName());
         }
 
         // Otherwise, we need to resolve the parameters as dependencies.
@@ -62,7 +83,7 @@ class Resolver
                 }
                 $dependency = $this->resolvePrimitive($parameter);
             } else {
-                $dependency = $this->resolveClass($parameter);
+                $dependency = $this->resolveClass($parameter, $dependencyName);
             }
 
             // @todo: currently variadic constructors are not fully implemented, but we'll need
@@ -74,7 +95,9 @@ class Resolver
             }
         }
 
-        return $image->newInstanceArgs($dependencies);
+        /** @var T */
+        $instance = $image->newInstanceArgs($dependencies);
+        return $this->finalize($instance);
     }
 
     /**
@@ -141,7 +164,10 @@ class Resolver
         throw new Error\UnresolvablePrimitive(message: $parameter->getName());
     }
 
-    protected function resolveClass(\ReflectionParameter $parameter): mixed
+    /**
+     * @param class-string $name
+     */
+    protected function resolveClass(\ReflectionParameter $parameter, string $name): mixed
     {
         if ($parameter->isVariadic()) {
             throw new Error\UnresolvableClass(
@@ -150,11 +176,10 @@ class Resolver
         }
 
         try {
-            $name = $this->getClassName($parameter);
-            if ($name === null) {
-                throw new Error\UnknownClass(message: $parameter->getName());
-            }
-            return $this->resolve($name);
+            return $this->resolve(
+                serviceName: $name,
+                isDependency: true
+            );
         } catch (Error\Unresolvable $e) {
             // handle the optional values on the parameter if it is not resolvable.
             if ($parameter->isDefaultValueAvailable()) {
@@ -162,5 +187,27 @@ class Resolver
             }
             throw $e;
         }
+    }
+
+    /**
+     * Finalize an instance.
+     *
+     * if $instance is a Cabinet\EventDispatcher, it will be added to the list of event dispatchers.
+     *
+     * @template T of object
+     * @param T $instance
+     * @return T
+     */
+    protected function finalize(object $instance): object
+    {
+        if ($instance instanceof EventDispatcher) {
+            $this->eventDispatchers[get_class($instance)] = $instance;
+        }
+
+        foreach ($this->eventDispatchers as $dispatcher) {
+            $dispatcher->dispatch(new Event\ServiceResolved(service: $instance));
+        }
+
+        return $instance;
     }
 }

@@ -7,13 +7,13 @@ namespace Arcanum\Test\Cabinet;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(\Arcanum\Cabinet\SimpleProvider::class)]
-final class SimpleProviderTest extends TestCase
+#[CoversClass(\Arcanum\Cabinet\PrototypeProvider::class)]
+final class PrototypeProviderTest extends TestCase
 {
     public function testSimnpleProvider(): void
     {
         // Arrange
-        $provider = \Arcanum\Cabinet\SimpleProvider::fromFactory(fn() => new \stdClass());
+        $provider = \Arcanum\Cabinet\PrototypeProvider::fromFactory(fn() => new \stdClass());
         $container = $this->getMockBuilder(\Arcanum\Cabinet\Container::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -23,6 +23,6 @@ final class SimpleProviderTest extends TestCase
 
         // Assert
         $this->assertInstanceOf(\stdClass::class, $result);
-        $this->assertSame($provider($container), $result);
+        $this->assertNotSame($provider($container), $result);
     }
 }
