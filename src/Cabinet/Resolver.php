@@ -51,6 +51,12 @@ class Resolver
             return $this->container->get($serviceName);
         }
 
+        // notify listeners that a service is requested
+        foreach ($this->eventDispatchers as $dispatcher) {
+            $dispatcher->dispatch(new Event\ServiceRequested($serviceName));
+        }
+
+
         $image = new \ReflectionClass($serviceName);
 
         // If it is not instantiable, we cannot resolve it.

@@ -12,7 +12,9 @@ use Arcanum\Cabinet\Error;
 use Arcanum\Cabinet\Resolver;
 use Arcanum\Cabinet\Container;
 use Arcanum\Cabinet\EventDispatcher;
+use Arcanum\Cabinet\Event\CabinetEvent;
 use Arcanum\Cabinet\Event\ServiceResolved;
+use Arcanum\Cabinet\Event\ServiceRequested;
 use Arcanum\Test\Cabinet\Fixture\SimpleDependency;
 
 #[CoversClass(Resolver::class)]
@@ -20,6 +22,7 @@ use Arcanum\Test\Cabinet\Fixture\SimpleDependency;
 #[UsesClass(Error\UnresolvablePrimitive::class)]
 #[UsesClass(Error\UnresolvableUnionType::class)]
 #[UsesClass(ServiceResolved::class)]
+#[UsesClass(ServiceRequested::class)]
 final class ResolverTest extends TestCase
 {
     public function testClosure(): void
@@ -383,16 +386,36 @@ final class ResolverTest extends TestCase
         $this->assertSame($dependency, $resolved->dependency);
     }
 
-    public function testCabinetEventDispatchersDispatchServiceResolved(): void
+    public function testCabinetEventDispatcher(): void
     {
         // Arrange
         $dispatcher = $this->getMockBuilder(EventDispatcher::class)
             ->onlyMethods(['dispatch'])
             ->getMock();
 
-        $dispatcher->expects($this->exactly(2))
+        $matcher = $this->exactly(3);
+        $dispatcher->expects($matcher)
             ->method('dispatch')
-            ->with($this->isInstanceOf(ServiceResolved::class));
+            ->willReturnCallback(fn(CabinetEvent $event) =>
+                match ($matcher->numberOfInvocations()) {
+                    0 => $this->fail('ServiceRequested event should have been dispatched.'),
+                    1 => $this->assertTrue(
+                        $event instanceof ServiceResolved &&
+                        $event->service() === $dispatcher,
+                        "First event was not ServiceResolved, or the service was not the dispatcher."
+                    ),
+                    2 => $this->assertTrue(
+                        $event instanceof ServiceRequested &&
+                        $event->serviceName() === SimpleDependency::class,
+                        "Second event was not ServiceRequested, or the service name was not SimpleDependency."
+                    ),
+                    3 => $this->assertTrue(
+                        $event instanceof ServiceResolved &&
+                        $event->service() instanceof SimpleDependency,
+                        "Third event was not ServiceResolved, or the service was not SimpleDependency."
+                    ),
+                    default => $this->fail('Too many events dispatched.'),
+                });
 
         /** @var Container&\PHPUnit\Framework\MockObject\MockObject */
         $container = $this->getMockBuilder(Container::class)

@@ -6,16 +6,16 @@ namespace Arcanum\Test\Cabinet\Event;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Arcanum\Cabinet\Event\ServiceResolved;
+use Arcanum\Cabinet\Event\ServiceRequested;
 
-#[CoversClass(ServiceResolved::class)]
-final class ServiceResolvedTest extends TestCase
+#[CoversClass(ServiceRequested::class)]
+final class ServiceRequestedTest extends TestCase
 {
-    public function testServiceResolved(): void
+    public function testServiceRequested(): void
     {
         // Arrange
-        $event = new ServiceResolved(
-            service: new \stdClass(),
+        $event = new ServiceRequested(
+            get_class(new \stdClass()),
         );
 
         // Act
@@ -23,7 +23,7 @@ final class ServiceResolvedTest extends TestCase
         $name = $event->serviceName();
 
         // Assert
-        $this->assertInstanceOf(\stdClass::class, $service);
+        $this->assertNull($service);
         $this->assertSame('stdClass', $name);
     }
 }
