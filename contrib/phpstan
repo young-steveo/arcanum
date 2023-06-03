@@ -7,7 +7,7 @@
 # @see https://phpstan.org/blog/why-you-should-always-analyse-whole-project
 #
 echo "Running PHPStan..."
-phpstan --memory-limit=512M analyze -c phpstan.neon -v
+phpstan --memory-limit=512M analyze -c contrib/phpstan.neon -v
 if [ $? != 0 ]
 then
         cat <<EOF
