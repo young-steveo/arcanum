@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Arcanum\Test\Cabinet\Stub;
+use Arcanum\Test\Cabinet\Fixture;
 use Arcanum\Cabinet\Container;
 
 /**
@@ -29,14 +29,14 @@ final class IntegrationTest extends TestCase
     {
         // Arrange
         $container = Container::create();
-        $container->service(Stub\SimpleService::class);
+        $container->service(Fixture\SimpleService::class);
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\SimpleService::class, $result);
-        $this->assertSame($container->get(Stub\SimpleService::class), $result);
+        $this->assertInstanceOf(Fixture\SimpleService::class, $result);
+        $this->assertSame($container->get(Fixture\SimpleService::class), $result);
     }
 
     #[CoversNothing]
@@ -44,14 +44,14 @@ final class IntegrationTest extends TestCase
     {
         // Arrange
         $container = Container::create();
-        $container->service(Stub\SimpleService::class);
-        $container->service(Stub\SimpleDependency::class);
+        $container->service(Fixture\SimpleService::class);
+        $container->service(Fixture\SimpleDependency::class);
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\SimpleService::class, $result);
+        $this->assertInstanceOf(Fixture\SimpleService::class, $result);
     }
 
     #[CoversNothing]
@@ -59,13 +59,13 @@ final class IntegrationTest extends TestCase
     {
         // Arrange
         $container = Container::create();
-        $container->service(Stub\SimpleService::class);
+        $container->service(Fixture\SimpleService::class);
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\SimpleService::class, $result);
+        $this->assertInstanceOf(Fixture\SimpleService::class, $result);
     }
 
     #[CoversNothing]
@@ -73,14 +73,14 @@ final class IntegrationTest extends TestCase
     {
         // Arrange
         $container = Container::create();
-        $container->prototype(Stub\SimpleService::class);
+        $container->prototype(Fixture\SimpleService::class);
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\SimpleService::class, $result);
-        $this->assertNotSame($container->get(Stub\SimpleService::class), $result);
+        $this->assertInstanceOf(Fixture\SimpleService::class, $result);
+        $this->assertNotSame($container->get(Fixture\SimpleService::class), $result);
     }
 
     #[CoversNothing]
@@ -88,14 +88,14 @@ final class IntegrationTest extends TestCase
     {
         // Arrange
         $container = Container::create();
-        $container->service(Stub\ServiceWithInterface::class);
-        $container->service(Stub\ServiceInterface::class, Stub\ConcreteService::class);
+        $container->service(Fixture\ServiceWithInterface::class);
+        $container->service(Fixture\ServiceInterface::class, Fixture\ConcreteService::class);
 
         // Act
-        $result = $container->get(Stub\ServiceWithInterface::class);
+        $result = $container->get(Fixture\ServiceWithInterface::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\ServiceWithInterface::class, $result);
-        $this->assertInstanceOf(Stub\ConcreteService::class, $result->dependency);
+        $this->assertInstanceOf(Fixture\ServiceWithInterface::class, $result);
+        $this->assertInstanceOf(Fixture\ConcreteService::class, $result->dependency);
     }
 }

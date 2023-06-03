@@ -7,7 +7,7 @@ namespace Arcanum\Test\Cabinet;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Arcanum\Test\Cabinet\Stub;
+use Arcanum\Test\Cabinet\Fixture;
 use Arcanum\Cabinet\Error;
 use Arcanum\Cabinet\Container;
 
@@ -33,13 +33,13 @@ final class ContainerTest extends TestCase
 
         $container = Container::fromResolver($resolver);
 
-        $service = new Stub\SimpleService(new Stub\SimpleDependency());
+        $service = new Fixture\SimpleService(new Fixture\SimpleDependency());
 
         // Act
-        $container[Stub\SimpleService::class] = $service;
+        $container[Fixture\SimpleService::class] = $service;
 
         // Assert
-        $this->assertSame($service, $container[Stub\SimpleService::class]);
+        $this->assertSame($service, $container[Fixture\SimpleService::class]);
     }
 
     public function testContainerThrowsOutOfBoundsIfArrayAccessOffsetDoesNotExist(): void
@@ -60,7 +60,7 @@ final class ContainerTest extends TestCase
         $this->expectException(Error\OutOfBounds::class);
 
         // Act
-        $container[Stub\SimpleService::class]; /** @phpstan-ignore-line */
+        $container[Fixture\SimpleService::class]; /** @phpstan-ignore-line */
     }
 
     public function testContainerOffsetUnset(): void
@@ -76,13 +76,13 @@ final class ContainerTest extends TestCase
             ->method('resolve');
 
         $container = Container::fromResolver($resolver);
-        $container[Stub\SimpleService::class] = new Stub\SimpleService(new Stub\SimpleDependency());
+        $container[Fixture\SimpleService::class] = new Fixture\SimpleService(new Fixture\SimpleDependency());
 
         // Act
-        unset($container[Stub\SimpleService::class]);
+        unset($container[Fixture\SimpleService::class]);
 
         // Assert
-        $this->assertFalse(isset($container[Stub\SimpleService::class]));
+        $this->assertFalse(isset($container[Fixture\SimpleService::class]));
     }
 
     public function testContainerOnlyAcceptsStringKeys(): void
@@ -140,11 +140,11 @@ final class ContainerTest extends TestCase
             ->method('resolve');
 
         $container = Container::fromResolver($resolver);
-        $service = new Stub\SimpleService(new Stub\SimpleDependency());
-        $container[Stub\SimpleService::class] = $service;
+        $service = new Fixture\SimpleService(new Fixture\SimpleDependency());
+        $container[Fixture\SimpleService::class] = $service;
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
         $this->assertSame($service, $result);
@@ -168,7 +168,7 @@ final class ContainerTest extends TestCase
         $this->expectException(Error\OutOfBounds::class);
 
         // Act
-        $container->get(Stub\SimpleService::class);
+        $container->get(Fixture\SimpleService::class);
     }
 
     public function testContainerHas(): void
@@ -184,10 +184,10 @@ final class ContainerTest extends TestCase
             ->method('resolve');
 
         $container = Container::fromResolver($resolver);
-        $container[Stub\SimpleService::class] = new Stub\SimpleService(new Stub\SimpleDependency());
+        $container[Fixture\SimpleService::class] = new Fixture\SimpleService(new Fixture\SimpleDependency());
 
         // Act
-        $result = $container->has(Stub\SimpleService::class);
+        $result = $container->has(Fixture\SimpleService::class);
 
         // Assert
         $this->assertTrue($result);
@@ -197,7 +197,7 @@ final class ContainerTest extends TestCase
     {
         // Arrange
 
-        $service = new Stub\SimpleService(new Stub\SimpleDependency());
+        $service = new Fixture\SimpleService(new Fixture\SimpleDependency());
 
         /** @var \Arcanum\Cabinet\Provider&\PHPUnit\Framework\MockObject\MockObject */
         $provider = $this->getMockBuilder(\Arcanum\Cabinet\Provider::class)
@@ -220,8 +220,8 @@ final class ContainerTest extends TestCase
         $container = Container::fromResolver($resolver);
 
         // Act
-        $container->provider(Stub\SimpleService::class, $provider);
-        $result = $container->get(Stub\SimpleService::class);
+        $container->provider(Fixture\SimpleService::class, $provider);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
         $this->assertSame($service, $result);
@@ -230,7 +230,7 @@ final class ContainerTest extends TestCase
     public function testContainerFactory(): void
     {
         // Arrange
-        $service = new Stub\SimpleService(new Stub\SimpleDependency());
+        $service = new Fixture\SimpleService(new Fixture\SimpleDependency());
 
         /** @var \Arcanum\Cabinet\Resolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Cabinet\Resolver::class)
@@ -244,8 +244,8 @@ final class ContainerTest extends TestCase
         $container = Container::fromResolver($resolver);
 
         // Act
-        $container->factory(Stub\SimpleService::class, fn() => $service);
-        $result = $container->get(Stub\SimpleService::class);
+        $container->factory(Fixture\SimpleService::class, fn() => $service);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
         $this->assertSame($service, $result);
@@ -262,18 +262,18 @@ final class ContainerTest extends TestCase
 
         $resolver->expects($this->once())
             ->method('resolve')
-            ->with(Stub\SimpleService::class)
-            ->willReturn(new Stub\SimpleService(new Stub\SimpleDependency()));
+            ->with(Fixture\SimpleService::class)
+            ->willReturn(new Fixture\SimpleService(new Fixture\SimpleDependency()));
 
         $container = Container::fromResolver($resolver);
-        $container->service(Stub\SimpleService::class);
+        $container->service(Fixture\SimpleService::class);
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\SimpleService::class, $result);
-        $this->assertSame($container->get(Stub\SimpleService::class), $result);
+        $this->assertInstanceOf(Fixture\SimpleService::class, $result);
+        $this->assertSame($container->get(Fixture\SimpleService::class), $result);
     }
 
     public function testResolveDependencies(): void
@@ -287,18 +287,18 @@ final class ContainerTest extends TestCase
 
         $resolver->expects($this->once())
             ->method('resolve')
-            ->with(Stub\SimpleService::class)
-            ->willReturn(new Stub\SimpleService(new Stub\SimpleDependency()));
+            ->with(Fixture\SimpleService::class)
+            ->willReturn(new Fixture\SimpleService(new Fixture\SimpleDependency()));
 
         $container = Container::fromResolver($resolver);
-        $container->service(Stub\SimpleService::class);
-        $container->service(Stub\SimpleDependency::class);
+        $container->service(Fixture\SimpleService::class);
+        $container->service(Fixture\SimpleDependency::class);
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\SimpleService::class, $result);
+        $this->assertInstanceOf(Fixture\SimpleService::class, $result);
     }
 
     public function testResolveDependenciesNotRegisteredButFindable(): void
@@ -312,17 +312,17 @@ final class ContainerTest extends TestCase
 
         $resolver->expects($this->once())
             ->method('resolve')
-            ->with(Stub\SimpleService::class)
-            ->willReturn(new Stub\SimpleService(new Stub\SimpleDependency()));
+            ->with(Fixture\SimpleService::class)
+            ->willReturn(new Fixture\SimpleService(new Fixture\SimpleDependency()));
 
         $container = Container::fromResolver($resolver);
-        $container->service(Stub\SimpleService::class);
+        $container->service(Fixture\SimpleService::class);
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\SimpleService::class, $result);
+        $this->assertInstanceOf(Fixture\SimpleService::class, $result);
     }
 
     public function testRegisterAnInstance(): void
@@ -338,11 +338,11 @@ final class ContainerTest extends TestCase
             ->method('resolve');
 
         $container = Container::fromResolver($resolver);
-        $instance = new Stub\SimpleService(new Stub\SimpleDependency());
-        $container->instance(Stub\SimpleService::class, $instance);
+        $instance = new Fixture\SimpleService(new Fixture\SimpleDependency());
+        $container->instance(Fixture\SimpleService::class, $instance);
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
         $this->assertSame($instance, $result);
@@ -359,20 +359,20 @@ final class ContainerTest extends TestCase
 
         $resolver->expects($this->exactly(2))
             ->method('resolve')
-            ->with(Stub\SimpleService::class)
+            ->with(Fixture\SimpleService::class)
             ->willReturnCallback(function () {
-                return new Stub\SimpleService(new Stub\SimpleDependency());
+                return new Fixture\SimpleService(new Fixture\SimpleDependency());
             });
 
         $container = Container::fromResolver($resolver);
-        $container->prototype(Stub\SimpleService::class);
+        $container->prototype(Fixture\SimpleService::class);
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\SimpleService::class, $result);
-        $this->assertNotSame($container->get(Stub\SimpleService::class), $result);
+        $this->assertInstanceOf(Fixture\SimpleService::class, $result);
+        $this->assertNotSame($container->get(Fixture\SimpleService::class), $result);
     }
 
     public function testPrototypeFactory(): void
@@ -389,16 +389,16 @@ final class ContainerTest extends TestCase
 
         $container = Container::fromResolver($resolver);
         $container->prototypeFactory(
-            serviceName: Stub\SimpleService::class,
-            factory: fn() => new Stub\SimpleService(new Stub\SimpleDependency())
+            serviceName: Fixture\SimpleService::class,
+            factory: fn() => new Fixture\SimpleService(new Fixture\SimpleDependency())
         );
 
         // Act
-        $result = $container->get(Stub\SimpleService::class);
+        $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\SimpleService::class, $result);
-        $this->assertNotSame($container->get(Stub\SimpleService::class), $result);
+        $this->assertInstanceOf(Fixture\SimpleService::class, $result);
+        $this->assertNotSame($container->get(Fixture\SimpleService::class), $result);
     }
 
     public function testRegisterConcreteImplementationOfInterface(): void
@@ -412,16 +412,16 @@ final class ContainerTest extends TestCase
 
         $resolver->expects($this->once())
             ->method('resolve')
-            ->with(Stub\ConcreteService::class)
-            ->willReturnCallback(fn() => new Stub\ConcreteService());
+            ->with(Fixture\ConcreteService::class)
+            ->willReturnCallback(fn() => new Fixture\ConcreteService());
 
         $container = Container::fromResolver($resolver);
-        $container->service(Stub\ServiceInterface::class, Stub\ConcreteService::class);
+        $container->service(Fixture\ServiceInterface::class, Fixture\ConcreteService::class);
 
         // Act
-        $result = $container->get(Stub\ServiceInterface::class);
+        $result = $container->get(Fixture\ServiceInterface::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\ConcreteService::class, $result);
+        $this->assertInstanceOf(Fixture\ConcreteService::class, $result);
     }
 }
