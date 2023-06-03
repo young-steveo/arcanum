@@ -34,6 +34,6 @@
         "cs-check": "bash contrib/cs-check",
         "cs-fix": "phpcbf --colors --standard=./contrib/phpcs-ruleset.xml",
         "phpstan": "bash contrib/phpstan",
-        "phpunit": "phpunit --colors=always --coverage-html=coverage"
+        "phpunit": "phpunit --colors=always --coverage-html=tests/.coverage"
     }
 }

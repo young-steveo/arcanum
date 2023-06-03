@@ -3,7 +3,7 @@
 # note: expected to be called by composer which adds vendor/bin to the path
 
 echo "Checking PSR-12 standard"
-phpcs --standard=./contrib/phpcs-ruleset.xml
+phpcs --standard=./contrib/phpcs-ruleset.xml --ignore=./tests/.coverage/*
 if [ $? != 0 ]
 then
     cat <<EOF
