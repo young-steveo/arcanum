@@ -1,5 +1,5 @@
 # Arcanum
 
-A CQRS Backend for PHP.
+A CQRS Backend Framework for PHP.
 
-Currently there is only a container implementation.
+Most of this was written with ChatGPT.
