@@ -23,7 +23,8 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "psr/container": "^2.0"
+        "psr/container": "^2.0",
+        "psr/event-dispatcher": "^1.0"
     },
     "scripts": {
         "post-install-cmd": [

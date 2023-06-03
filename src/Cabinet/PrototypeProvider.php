@@ -4,22 +4,17 @@ declare(strict_types=1);
 
 namespace Arcanum\Cabinet;
 
-final class SimpleProvider extends Provider
+final class PrototypeProvider extends Provider
 {
     /**
-     * The service that is provided by this provider.
-     */
-    private mixed $service;
-
-    /**
-     * SimpleProvider is used by the framework to register simple services.
+     * PrototypeProvider is used by the framework to register prototype services.
      */
     private function __construct(private \Closure $factory)
     {
     }
 
     /**
-     * Create a SimpleProvider from a factory closure.
+     * Create a PrototypeProvider from a factory closure.
      */
     public static function fromFactory(\Closure $factory): static
     {
@@ -31,9 +26,6 @@ final class SimpleProvider extends Provider
      */
     public function __invoke(Container $container): mixed
     {
-        if (!isset($this->service)) {
-            $this->service = ($this->factory)($container);
-        }
-        return $this->service;
+        return ($this->factory)($container);
     }
 }

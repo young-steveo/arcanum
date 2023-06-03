@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Arcanum\Test\Cabinet\Stub;
 
-class ConcreteService extends AbstractService
+class ConcreteService extends AbstractService implements ServiceInterface
 {
     public function __construct()
     {
