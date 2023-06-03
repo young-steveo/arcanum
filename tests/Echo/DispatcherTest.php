@@ -79,10 +79,6 @@ final class DispatcherTest extends TestCase
     {
         // Arrange
         $count = 0;
-        $listener = function (Event $event) use (&$count): Event {
-            $count++;
-            return $event;
-        };
 
         /** @var Provider&\PHPUnit\Framework\MockObject\MockObject */
         $provider = $this->getMockBuilder(Provider::class)
@@ -93,9 +89,18 @@ final class DispatcherTest extends TestCase
             ->expects($this->once())
             ->method('getListenersForEvent')
             ->willReturn([
-                $listener,
-                $listener,
-                $listener,
+                function (Event $event) use (&$count): Event {
+                    $count++;
+                    return $event;
+                },
+                function (Event $event) use (&$count): Event {
+                    $count++;
+                    return $event;
+                },
+                function (Event $event) use (&$count): Event {
+                    $count++;
+                    return $event;
+                },
             ]);
 
         /** @var Event&\PHPUnit\Framework\MockObject\MockObject */
@@ -172,5 +177,51 @@ final class DispatcherTest extends TestCase
         // Assert
         $this->assertSame($event, $result);
         $this->assertSame(2, $count);
+    }
+
+    public function testIfSameListenerIsRegisteredForTwoEventsInInheritanceChainItIsOnlyDispatchedToOnce(): void
+    {
+        // Arrange
+        $count = 0;
+        $listener = function (Event $event) use (&$count): Event {
+            $count++;
+            return $event;
+        };
+
+        /** @var Provider&\PHPUnit\Framework\MockObject\MockObject */
+        $provider = $this->getMockBuilder(Provider::class)
+            ->onlyMethods(['getListenersForEvent'])
+            ->getMock();
+
+        $provider
+            ->expects($this->once())
+            ->method('getListenersForEvent')
+            ->willReturn([
+                $listener,
+                $listener,
+            ]);
+
+        /** @var Event&\PHPUnit\Framework\MockObject\MockObject */
+        $event = $this->getMockBuilder(\Arcanum\Echo\Event::class)
+            ->onlyMethods(['stopPropagation', 'isPropagationStopped'])
+            ->getMock();
+
+        $event
+            ->expects($this->never())
+            ->method('stopPropagation');
+
+        $event
+            ->expects($this->exactly(2))
+            ->method('isPropagationStopped')
+            ->willReturn(false);
+
+        $dispatcher = new \Arcanum\Echo\Dispatcher($provider);
+
+        // Act
+        $result = $dispatcher->dispatch($event);
+
+        // Assert
+        $this->assertSame($event, $result);
+        $this->assertSame(1, $count);
     }
 }

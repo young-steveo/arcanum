@@ -9,7 +9,7 @@ class Resolver
     /**
      * List of Cabinet\EventDispatcher instances.
      *
-     * @var array<class-string, EventDispatcher>
+     * @var EventDispatcher[]
      */
     protected array $eventDispatchers = [];
 
@@ -201,7 +201,7 @@ class Resolver
     protected function finalize(object $instance): object
     {
         if ($instance instanceof EventDispatcher) {
-            $this->eventDispatchers[get_class($instance)] = $instance;
+            $this->eventDispatchers[] = $instance;
         }
 
         foreach ($this->eventDispatchers as $dispatcher) {

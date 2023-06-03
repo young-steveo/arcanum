@@ -22,10 +22,21 @@ class Dispatcher implements EventDispatcherInterface
             $event = UnknownEvent::fromObject($event);
         }
 
+        $duplicates = [];
         foreach ($this->provider->getListenersForEvent($event) as $listener) {
             if ($event->isPropagationStopped()) {
                 break;
             }
+
+            // We don't want to call the same listener twice for a single event.
+            // this check is needed because the same listener might be registered
+            // for events that inherit from each other.
+            if (in_array($listener, $duplicates, true)) {
+                continue;
+            }
+            $duplicates[] = $listener;
+
+            // execute the listener
             $event = $listener($event);
         }
 

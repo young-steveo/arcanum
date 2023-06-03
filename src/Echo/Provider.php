@@ -26,12 +26,12 @@ class Provider implements ListenerProviderInterface
      */
     public function getListenersForEvent(object $event): iterable
     {
-        $eventName = get_class($event);
-
-        if (!isset($this->listeners[$eventName])) {
-            return [];
-        }
-
-        return $this->listeners[$eventName];
+        $image = new \ReflectionClass($event);
+        do {
+            $eventName = $image->getName();
+            if (isset($this->listeners[$eventName])) {
+                yield from $this->listeners[$eventName];
+            }
+        } while ($image = $image->getParentClass());
     }
 }
