@@ -7,19 +7,22 @@ namespace Arcanum\Test\Cabinet;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Arcanum\Test\Cabinet\Stub;
+use Arcanum\Test\Cabinet\Fixture;
 use Arcanum\Cabinet\Error;
 use Arcanum\Cabinet\Resolver;
 use Arcanum\Cabinet\Container;
 use Arcanum\Cabinet\EventDispatcher;
+use Arcanum\Cabinet\Event\CabinetEvent;
 use Arcanum\Cabinet\Event\ServiceResolved;
-use Arcanum\Test\Cabinet\Stub\SimpleDependency;
+use Arcanum\Cabinet\Event\ServiceRequested;
+use Arcanum\Test\Cabinet\Fixture\SimpleDependency;
 
 #[CoversClass(Resolver::class)]
 #[UsesClass(Error\UnresolvableClass::class)]
 #[UsesClass(Error\UnresolvablePrimitive::class)]
 #[UsesClass(Error\UnresolvableUnionType::class)]
 #[UsesClass(ServiceResolved::class)]
+#[UsesClass(ServiceRequested::class)]
 final class ResolverTest extends TestCase
 {
     public function testClosure(): void
@@ -60,16 +63,16 @@ final class ResolverTest extends TestCase
 
         $container->expects($this->once())
             ->method('has')
-            ->with(Stub\SimpleDependency::class)
+            ->with(Fixture\SimpleDependency::class)
             ->willReturn(false);
 
         $resolver = Resolver::forContainer($container);
 
         // Act
-        $resolved = $resolver->resolve(Stub\SimpleService::class);
+        $resolved = $resolver->resolve(Fixture\SimpleService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\SimpleService::class, $resolved);
+        $this->assertInstanceOf(Fixture\SimpleService::class, $resolved);
     }
 
     public function testClassWithConstructorThatHasNoParameters(): void
@@ -90,10 +93,10 @@ final class ResolverTest extends TestCase
         $resolver = Resolver::forContainer($container);
 
         // Act
-        $resolved = $resolver->resolve(Stub\ConcreteService::class);
+        $resolved = $resolver->resolve(Fixture\ConcreteService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\ConcreteService::class, $resolved);
+        $this->assertInstanceOf(Fixture\ConcreteService::class, $resolved);
     }
 
     public function testClassWithDefaultPrimitives(): void
@@ -114,17 +117,17 @@ final class ResolverTest extends TestCase
         $resolver = Resolver::forContainer($container);
 
         // Act
-        $resolved = $resolver->resolve(Stub\PrimitiveService::class);
+        $resolved = $resolver->resolve(Fixture\PrimitiveService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\PrimitiveService::class, $resolved);
+        $this->assertInstanceOf(Fixture\PrimitiveService::class, $resolved);
         $this->assertSame("", $resolved->getString());
         $this->assertSame(0, $resolved->getInt());
         $this->assertSame(0.0, $resolved->getFloat());
         $this->assertSame(false, $resolved->getBool());
         $this->assertSame([], $resolved->getArray());
         $this->assertInstanceOf(\stdClass::class, $resolved->getObject());
-        $this->assertInstanceOf(Stub\SimpleDependency::class, $resolved->getMixed());
+        $this->assertInstanceOf(Fixture\SimpleDependency::class, $resolved->getMixed());
         $this->assertNull($resolved->getNull());
     }
 
@@ -146,10 +149,10 @@ final class ResolverTest extends TestCase
         $resolver = Resolver::forContainer($container);
 
         // Act
-        $resolved = $resolver->resolve(Stub\VariadicPrimitiveService::class);
+        $resolved = $resolver->resolve(Fixture\VariadicPrimitiveService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\VariadicPrimitiveService::class, $resolved);
+        $this->assertInstanceOf(Fixture\VariadicPrimitiveService::class, $resolved);
         $this->assertSame([], $resolved->strings);
     }
 
@@ -171,10 +174,10 @@ final class ResolverTest extends TestCase
         $resolver = Resolver::forContainer($container);
 
         // Act
-        $resolved = $resolver->resolve(Stub\DefaultPrimitiveServiceWithNoType::class);
+        $resolved = $resolver->resolve(Fixture\DefaultPrimitiveServiceWithNoType::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\DefaultPrimitiveServiceWithNoType::class, $resolved);
+        $this->assertInstanceOf(Fixture\DefaultPrimitiveServiceWithNoType::class, $resolved);
         $this->assertSame(0, $resolved->test);
     }
 
@@ -192,17 +195,17 @@ final class ResolverTest extends TestCase
 
         $container->expects($this->once())
             ->method('has')
-            ->with(Stub\SimpleDependency::class)
+            ->with(Fixture\SimpleDependency::class)
             ->willReturn(false);
 
         $resolver = Resolver::forContainer($container);
 
         // Act
-        $resolved = $resolver->resolve(Stub\ParentService::class);
+        $resolved = $resolver->resolve(Fixture\ParentService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\ParentService::class, $resolved);
-        $this->assertInstanceOf(Stub\SimpleDependency::class, $resolved->dependency);
+        $this->assertInstanceOf(Fixture\ParentService::class, $resolved);
+        $this->assertInstanceOf(Fixture\SimpleDependency::class, $resolved->dependency);
     }
 
     public function testAnUninstantiableClass(): void
@@ -226,7 +229,7 @@ final class ResolverTest extends TestCase
         $this->expectException(Error\UnresolvableClass::class);
 
         // Act
-        $resolver->resolve(Stub\AbstractService::class);
+        $resolver->resolve(Fixture\AbstractService::class);
     }
 
     public function testVariadicClassService(): void
@@ -250,7 +253,7 @@ final class ResolverTest extends TestCase
         $this->expectException(Error\UnresolvableClass::class);
 
         // Act
-        $resolver->resolve(Stub\VariadicClassService::class);
+        $resolver->resolve(Fixture\VariadicClassService::class);
     }
 
     public function testClassWithPrimitivesThatHaveNoDefaults(): void
@@ -267,7 +270,7 @@ final class ResolverTest extends TestCase
 
         $container->expects($this->once())
             ->method('has')
-            ->with(Stub\DependencyWithNoDefaultPrimitive::class)
+            ->with(Fixture\DependencyWithNoDefaultPrimitive::class)
             ->willReturn(false);
 
         $resolver = Resolver::forContainer($container);
@@ -276,7 +279,7 @@ final class ResolverTest extends TestCase
         $this->expectException(Error\UnresolvablePrimitive::class);
 
         // Act
-        $resolver->resolve(Stub\ServiceWithNoDefaultPrimitive::class);
+        $resolver->resolve(Fixture\ServiceWithNoDefaultPrimitive::class);
     }
 
     public function testClassThatHasUnresolvablePrimitivesButWithADefault(): void
@@ -293,16 +296,16 @@ final class ResolverTest extends TestCase
 
         $container->expects($this->once())
             ->method('has')
-            ->with(Stub\DependencyWithNoDefaultPrimitive::class)
+            ->with(Fixture\DependencyWithNoDefaultPrimitive::class)
             ->willReturn(false);
 
         $resolver = Resolver::forContainer($container);
 
         // Act
-        $resolved = $resolver->resolve(Stub\ParentPrimitiveService::class);
+        $resolved = $resolver->resolve(Fixture\ParentPrimitiveService::class);
 
         // Assert
-        $this->assertInstanceOf(Stub\ParentPrimitiveService::class, $resolved);
+        $this->assertInstanceOf(Fixture\ParentPrimitiveService::class, $resolved);
     }
 
     public function testCallableFunction(): void
@@ -326,7 +329,7 @@ final class ResolverTest extends TestCase
         $this->expectException(Error\UnresolvablePrimitive::class);
 
         // Act
-        $resolver->resolve(Stub\FunctionService::class);
+        $resolver->resolve(Fixture\FunctionService::class);
     }
 
     public function testUnionType(): void
@@ -350,7 +353,7 @@ final class ResolverTest extends TestCase
         $this->expectException(Error\UnresolvableUnionType::class);
 
         // Act
-        $resolver->resolve(Stub\ServiceWithUnionType::class);
+        $resolver->resolve(Fixture\ServiceWithUnionType::class);
     }
 
     public function testPreferContainerInstancesOverNewInstances(): void
@@ -362,39 +365,57 @@ final class ResolverTest extends TestCase
             ->onlyMethods(['has', 'get'])
             ->getMock();
 
-        $dependency = new Stub\SimpleDependency();
+        $dependency = new Fixture\SimpleDependency();
 
         $container->expects($this->once())
             ->method('has')
-            ->with(Stub\SimpleDependency::class)
+            ->with(Fixture\SimpleDependency::class)
             ->willReturn(true);
 
         $container->expects($this->once())
             ->method('get')
-            ->with(Stub\SimpleDependency::class)
+            ->with(Fixture\SimpleDependency::class)
             ->willReturn($dependency);
 
         $resolver = Resolver::forContainer($container);
 
         // Act
-        $resolved = $resolver->resolve(Stub\SimpleService::class);
+        $resolved = $resolver->resolve(Fixture\SimpleService::class);
 
         // Assert
         $this->assertSame($dependency, $resolved->dependency);
     }
 
-    public function testCabinetEventDispatchersDispatchServiceResolved(): void
+    public function testCabinetEventDispatcher(): void
     {
         // Arrange
         $dispatcher = $this->getMockBuilder(EventDispatcher::class)
             ->onlyMethods(['dispatch'])
             ->getMock();
 
-        $dispatcher->expects($this->exactly(2))
+        $matcher = $this->exactly(3);
+        $dispatcher->expects($matcher)
             ->method('dispatch')
-            ->with($this->isInstanceOf(ServiceResolved::class));
-
-        $this->assertInstanceOf(EventDispatcher::class, $dispatcher);
+            ->willReturnCallback(fn(CabinetEvent $event) =>
+                match ($matcher->numberOfInvocations()) {
+                    0 => $this->fail('ServiceRequested event should have been dispatched.'),
+                    1 => $this->assertTrue(
+                        $event instanceof ServiceResolved &&
+                        $event->service() === $dispatcher,
+                        "First event was not ServiceResolved, or the service was not the dispatcher."
+                    ),
+                    2 => $this->assertTrue(
+                        $event instanceof ServiceRequested &&
+                        $event->serviceName() === SimpleDependency::class,
+                        "Second event was not ServiceRequested, or the service name was not SimpleDependency."
+                    ),
+                    3 => $this->assertTrue(
+                        $event instanceof ServiceResolved &&
+                        $event->service() instanceof SimpleDependency,
+                        "Third event was not ServiceResolved, or the service was not SimpleDependency."
+                    ),
+                    default => $this->fail('Too many events dispatched.'),
+                });
 
         /** @var Container&\PHPUnit\Framework\MockObject\MockObject */
         $container = $this->getMockBuilder(Container::class)

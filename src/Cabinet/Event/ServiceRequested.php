@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Arcanum\Cabinet\Event;
 
-final class ServiceResolved extends \Arcanum\Echo\Event implements CabinetEvent
+final class ServiceRequested extends \Arcanum\Echo\Event implements CabinetEvent
 {
     /**
-     * @param object $service
+     * @param class-string $service
      */
-    public function __construct(private object $service)
+    public function __construct(private string $service)
     {
     }
 
@@ -20,7 +20,7 @@ final class ServiceResolved extends \Arcanum\Echo\Event implements CabinetEvent
      */
     public function serviceName(): string
     {
-        return get_class($this->service);
+        return $this->service;
     }
 
     /**
@@ -30,6 +30,6 @@ final class ServiceResolved extends \Arcanum\Echo\Event implements CabinetEvent
      */
     public function service(): object|null
     {
-        return $this->service;
+        return null;
     }
 }

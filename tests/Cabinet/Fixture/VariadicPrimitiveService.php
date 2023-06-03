@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Cabinet\Stub;
+namespace Arcanum\Test\Cabinet\Fixture;
 
 class VariadicPrimitiveService
 {

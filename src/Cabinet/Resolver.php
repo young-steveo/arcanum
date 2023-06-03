@@ -9,7 +9,7 @@ class Resolver
     /**
      * List of Cabinet\EventDispatcher instances.
      *
-     * @var array<class-string, EventDispatcher>
+     * @var EventDispatcher[]
      */
     protected array $eventDispatchers = [];
 
@@ -50,6 +50,12 @@ class Resolver
             /** @var T */
             return $this->container->get($serviceName);
         }
+
+        // notify listeners that a service is requested
+        foreach ($this->eventDispatchers as $dispatcher) {
+            $dispatcher->dispatch(new Event\ServiceRequested($serviceName));
+        }
+
 
         $image = new \ReflectionClass($serviceName);
 
@@ -201,7 +207,7 @@ class Resolver
     protected function finalize(object $instance): object
     {
         if ($instance instanceof EventDispatcher) {
-            $this->eventDispatchers[get_class($instance)] = $instance;
+            $this->eventDispatchers[] = $instance;
         }
 
         foreach ($this->eventDispatchers as $dispatcher) {
