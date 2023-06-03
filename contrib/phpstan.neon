@@ -1,8 +1,8 @@
 parameters:
     level: 9
     paths:
-        - src
-        - tests
+        - ../src
+        - ../tests
     excludePaths:
-        - tests/.coverage/*
-        - tests/.phpunit.cache/*
+        - ../tests/.coverage/*
+        - ../tests/.phpunit.cache/*
