@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Arcanum\Cabinet;
 
 use Psr\Container\ContainerInterface;
+use Arcanum\Codex\ClassResolver;
+use Arcanum\Codex\Resolver;
 
 /**
  * @implements \ArrayAccess<class-string, mixed>
@@ -12,9 +14,9 @@ use Psr\Container\ContainerInterface;
 class Container implements \ArrayAccess, ContainerInterface
 {
     /**
-     * Resolver used to build classes.
+     * ClassResolver used to build classes.
      */
-    protected Resolver $resolver;
+    protected ClassResolver $resolver;
 
     /**
      * @var array<class-string, Provider>
@@ -24,7 +26,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * Container uses a resolver to instantiate services.
      */
-    protected function __construct(Resolver $resolver = null)
+    protected function __construct(ClassResolver $resolver = null)
     {
         $this->resolver = $resolver ?? Resolver::forContainer($this);
     }
@@ -40,7 +42,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * Create a new container from a resolver.
      */
-    public static function fromResolver(Resolver $resolver): self
+    public static function fromResolver(ClassResolver $resolver): self
     {
         return new self($resolver);
     }

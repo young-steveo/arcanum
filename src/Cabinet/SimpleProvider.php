@@ -29,7 +29,7 @@ final class SimpleProvider extends Provider
     /**
      * Provide a service from the factory.
      */
-    public function __invoke(Container $container): mixed
+    public function __invoke(Container $container): object|null
     {
         if (!isset($this->service)) {
             $this->service = ($this->factory)($container);
