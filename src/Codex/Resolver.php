@@ -109,6 +109,60 @@ class Resolver implements ClassResolver
     }
 
     /**
+     * Resolve a class with arguments.
+     *
+     * @template T of object
+     * @param class-string<T> $className
+     * @param class-string[] $arguments
+     * @return T
+     * @throws Error\UnresolvableClass
+     */
+    public function resolveWith(string $className, array $arguments): object
+    {
+        $image = new \ReflectionClass($className);
+
+        // If it is not instantiable, we cannot resolve it.
+        if (!$image->isInstantiable()) {
+            throw new Error\UnresolvableClass(message: $className);
+        }
+
+        $constructor = $image->getConstructor();
+
+        // If it has no constructor, we should just resolve it.
+        if ($constructor === null) {
+            return $this->resolve($className);
+        }
+
+        $parameters = $constructor->getParameters();
+
+        // If it has a constructor, but no parameters, we should just resolve it.
+        if (count($parameters) === 0) {
+            return $this->resolve($className);
+        }
+
+        // Since we are going to resolve the dependencies, let's first
+        // notify listeners that a class was requested.
+        $this->notify(new Event\ClassRequested($className));
+
+        // Now we can resolve the dependencies.
+        $dependencies = [];
+        foreach ($parameters as $index => $parameter) {
+            $argument = $arguments[$index] ?? null;
+            $dependencies[] = match (true) {
+                $argument !== null => $this->resolve($argument, isDependency: true),
+                $parameter->isDefaultValueAvailable() => $parameter->getDefaultValue(),
+                default => throw new Error\UnresolvableClass(
+                    "$className requires a parameter at index $index, but none was provided."
+                )
+            };
+        }
+
+        /** @var T */
+        $instance = $image->newInstanceArgs($dependencies);
+        return $this->finalize($instance);
+    }
+
+    /**
      * Get the class name of the parameter, or null if it is not a class.
      *
      * @return class-string|null

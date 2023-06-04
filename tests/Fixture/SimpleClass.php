@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Cabinet\Fixture;
+namespace Arcanum\Test\Fixture;
 
-class SimpleService
+class SimpleClass
 {
     public function __construct(
         public SimpleDependency $dependency

@@ -20,4 +20,15 @@ interface ClassResolver
      * @throws Error\UnresolvableUnionType
      */
     public function resolve(string|callable $className, bool $isDependency = false): object;
+
+    /**
+     * Resolve a class with arguments.
+     *
+     * @template T of object
+     * @param class-string<T> $className
+     * @param class-string[] $arguments
+     * @return T
+     * @throws Error\UnresolvableClass
+     */
+    public function resolveWith(string $className, array $arguments): object;
 }

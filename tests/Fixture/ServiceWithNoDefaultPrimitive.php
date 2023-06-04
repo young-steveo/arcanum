@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Codex\Fixture;
+namespace Arcanum\Test\Fixture;
 
 class ServiceWithNoDefaultPrimitive
 {
