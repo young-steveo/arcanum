@@ -7,7 +7,7 @@ namespace Arcanum\Test\Cabinet;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Arcanum\Test\Cabinet\Fixture;
+use Arcanum\Test\Fixture;
 use Arcanum\Cabinet\Error;
 use Arcanum\Cabinet\Container;
 
@@ -24,8 +24,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -46,8 +49,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -66,8 +72,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -87,8 +96,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -107,8 +119,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -127,8 +142,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -149,8 +167,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -169,8 +190,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -202,8 +226,11 @@ final class ContainerTest extends TestCase
 
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -225,8 +252,11 @@ final class ContainerTest extends TestCase
 
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -246,8 +276,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->once())
             ->method('resolve')
@@ -270,8 +303,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->once())
             ->method('resolve')
@@ -294,8 +330,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->once())
             ->method('resolve')
@@ -317,8 +356,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -339,8 +381,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->exactly(2))
             ->method('resolve')
@@ -365,8 +410,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->never())
             ->method('resolve');
@@ -390,8 +438,11 @@ final class ContainerTest extends TestCase
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
         $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
 
         $resolver->expects($this->once())
             ->method('resolve')
@@ -406,5 +457,36 @@ final class ContainerTest extends TestCase
 
         // Assert
         $this->assertInstanceOf(Fixture\ConcreteService::class, $result);
+    }
+
+    public function testServiceWith(): void
+    {
+        // Arrange
+        /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
+            ->onlyMethods(['resolve', 'resolveWith'])
+            ->getMock();
+
+        $resolver->expects($this->once())
+            ->method('resolveWith')
+            ->with(Fixture\ServiceWithInterface::class, [Fixture\ConcreteService::class])
+            ->willReturn(new Fixture\ServiceWithInterface(new Fixture\ConcreteService()));
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        $container = Container::fromResolver($resolver);
+
+        $container->serviceWith(
+            serviceName: Fixture\ServiceWithInterface::class,
+            dependencies: [Fixture\ConcreteService::class]
+        );
+
+        // Act
+        $result = $container->get(Fixture\ServiceWithInterface::class);
+
+        // Assert
+        $this->assertInstanceOf(Fixture\ServiceWithInterface::class, $result);
+        $this->assertInstanceOf(Fixture\ConcreteService::class, $result->dependency);
     }
 }

@@ -24,6 +24,11 @@ class Container implements \ArrayAccess, ContainerInterface
     protected array $providers = [];
 
     /**
+     * @var array<class-string, array<callable(object): object>>
+     */
+    protected array $decorators = [];
+
+    /**
      * Container uses a resolver to instantiate services.
      */
     protected function __construct(ClassResolver $resolver = null)
@@ -60,6 +65,19 @@ class Container implements \ArrayAccess, ContainerInterface
         }
         $this->factory($serviceName, function (Container $container) use ($implementation) {
             return $container->resolver->resolve($implementation);
+        });
+    }
+
+    /**
+     * Register a service on the container while defining its dependencies.
+     *
+     * @param class-string $serviceName
+     * @param class-string[] $dependencies
+     */
+    public function serviceWith(string $serviceName, array $dependencies): void
+    {
+        $this->factory($serviceName, function (Container $container) use ($serviceName, $dependencies) {
+            return $container->resolver->resolveWith($serviceName, $dependencies);
         });
     }
 
@@ -122,6 +140,24 @@ class Container implements \ArrayAccess, ContainerInterface
     }
 
     /**
+     * Register a decorator on the container.
+     *
+     * Decorators are applied to the service when it is requested from the
+     * container for the first time.
+     *
+     * @param class-string $serviceName
+     * @param callable(object): object $decorator
+     */
+    public function decorator(string $serviceName, callable $decorator): void
+    {
+        if (!isset($this->decorators[$serviceName])) {
+            $this->decorators[$serviceName] = [];
+        }
+
+        $this->decorators[$serviceName][] = $decorator;
+    }
+
+    /**
      * ArrayAccess methods
      */
 
@@ -161,7 +197,11 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * offsetGet
      *
+     * This is where all the magic happens.
+     *
      * @param class-string $offset
+     * @throws Error\InvalidKey
+     * @throws Error\OutOfBounds
      */
     public function offsetGet($offset): mixed
     {
@@ -169,11 +209,25 @@ class Container implements \ArrayAccess, ContainerInterface
             throw new Error\InvalidKey("Invalid key type: " . gettype($offset));
         }
 
+        // Provide the instance.
         $provider = $this->providers[$offset] ?? new NullProvider();
-        if ($instance = $provider($this)) {
-            return $instance;
+        $instance = $provider($this);
+        if (!$instance) {
+            throw new Error\OutOfBounds("No entry was found for this identifier: $offset");
         }
-        throw new Error\OutOfBounds("No entry was found for this identifier: $offset");
+
+        // Apply decorators.
+        $decorators = $this->decorators[$offset] ?? [];
+        foreach ($decorators as $decorator) {
+            $instance = $decorator($instance);
+        }
+
+        // Remove the decorator if the provider is not a prototype.
+        if (!$provider instanceof PrototypeProvider) {
+            unset($this->decorators[$offset]);
+        }
+
+        return $instance;
     }
 
     /**

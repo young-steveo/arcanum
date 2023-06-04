@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Arcanum\Test\Codex\Fixture;
+use Arcanum\Test\Fixture;
 use Arcanum\Cabinet\Container;
 
 /**
@@ -83,13 +83,13 @@ final class IntegrationTest extends TestCase
         // Arrange
         $container = Container::create();
         $container->service(Fixture\ServiceWithInterface::class);
-        $container->service(Fixture\ServiceInterface::class, Fixture\ConcreteClass::class);
+        $container->service(Fixture\ServiceInterface::class, Fixture\ConcreteService::class);
 
         // Act
         $result = $container->get(Fixture\ServiceWithInterface::class);
 
         // Assert
         $this->assertInstanceOf(Fixture\ServiceWithInterface::class, $result);
-        $this->assertInstanceOf(Fixture\ConcreteClass::class, $result->dependency);
+        $this->assertInstanceOf(Fixture\ConcreteService::class, $result->dependency);
     }
 }

@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Arcanum\Test\Cabinet;
 
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Arcanum\Test\Cabinet\Fixture;
 use Arcanum\Cabinet\Container;
 
 /**
