@@ -9,5 +9,5 @@ abstract class Provider
     /**
      * Invoking the provider should return the service.
      */
-    abstract public function __invoke(Container $container): mixed;
+    abstract public function __invoke(Container $container): object|null;
 }

@@ -38,7 +38,7 @@ class Resolver
      * @param class-string<T>|(callable(ContainerInterface): T) $className
      * @return T
      */
-    public function resolve(string|callable $className, bool $isDependency = false): mixed
+    public function resolve(string|callable $className, bool $isDependency = false): object
     {
         // To resolve a callable, we just call it with the container.
         if (is_callable($className)) {
@@ -175,7 +175,7 @@ class Resolver
     /**
      * @param class-string $name
      */
-    protected function resolveClass(\ReflectionParameter $parameter, string $name): mixed
+    protected function resolveClass(\ReflectionParameter $parameter, string $name): object
     {
         if ($parameter->isVariadic()) {
             throw new Error\UnresolvableClass(
@@ -191,6 +191,7 @@ class Resolver
         } catch (Error\Unresolvable $e) {
             // handle the optional values on the parameter if it is not resolvable.
             if ($parameter->isDefaultValueAvailable()) {
+                /** @var object */
                 return $parameter->getDefaultValue();
             }
             throw $e;
