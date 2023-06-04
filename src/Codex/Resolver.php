@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Arcanum\Codex;
 
+use Arcanum\Codex\Event\CodexEvent;
 use Psr\Container\ContainerInterface;
 
-class Resolver
+class Resolver implements ClassResolver
 {
     /**
      * List of Codex\EventDispatcher instances.
@@ -44,20 +45,19 @@ class Resolver
         if (is_callable($className)) {
             /** @var T */
             $instance = $className($this->container);
+            $this->notify(new Event\ClassRequested(get_class($instance)));
             return $this->finalize($instance);
         }
+
+        // notify listeners that a class was requested
+        $this->notify(new Event\ClassRequested($className));
 
         // first try to get the class from the container
         if ($isDependency && $this->container->has($className)) {
             /** @var T */
-            return $this->container->get($className);
+            $instance = $this->container->get($className);
+            return $this->finalize($instance);
         }
-
-        // notify listeners that a class was requested
-        foreach ($this->eventDispatchers as $dispatcher) {
-            $dispatcher->dispatch(new Event\ClassRequested($className));
-        }
-
 
         $image = new \ReflectionClass($className);
 
@@ -218,5 +218,12 @@ class Resolver
         }
 
         return $instance;
+    }
+
+    protected function notify(CodexEvent $event): void
+    {
+        foreach ($this->eventDispatchers as $dispatcher) {
+            $dispatcher->dispatch($event);
+        }
     }
 }
