@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Arcanum\Cabinet;
 
 use Psr\Container\ContainerInterface;
+use Arcanum\Codex\Resolver;
 
 /**
  * @implements \ArrayAccess<class-string, mixed>

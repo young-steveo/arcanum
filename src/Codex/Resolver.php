@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Cabinet;
+namespace Arcanum\Codex;
+
+use Psr\Container\ContainerInterface;
 
 class Resolver
 {
     /**
-     * List of Cabinet\EventDispatcher instances.
+     * List of Codex\EventDispatcher instances.
      *
      * @var EventDispatcher[]
      */
@@ -17,65 +19,65 @@ class Resolver
      * Resolver uses a container to resolve dependencies.
      */
     private function __construct(
-        private Container $container
+        private ContainerInterface $container
     ) {
     }
 
     /**
      * Create a new resolver.
      */
-    public static function forContainer(Container $container): self
+    public static function forContainer(ContainerInterface $container): self
     {
         return new self($container);
     }
 
     /**
-     * Resolve a service from the container.
+     * Resolve a class
      *
      * @template T of object
-     * @param class-string<T>|(callable(Container): T) $serviceName
+     * @param class-string<T>|(callable(ContainerInterface): T) $className
      * @return T
      */
-    public function resolve(string|callable $serviceName, bool $isDependency = false): mixed
+    public function resolve(string|callable $className, bool $isDependency = false): mixed
     {
         // To resolve a callable, we just call it with the container.
-        if (is_callable($serviceName)) {
+        if (is_callable($className)) {
             /** @var T */
-            $instance = $serviceName($this->container);
+            $instance = $className($this->container);
             return $this->finalize($instance);
         }
 
-        // first try to get the service from the container
-        if ($isDependency && $this->container->has($serviceName)) {
+        // first try to get the class from the container
+        if ($isDependency && $this->container->has($className)) {
             /** @var T */
-            return $this->container->get($serviceName);
+            return $this->container->get($className);
         }
 
-        // notify listeners that a service is requested
+        // notify listeners that a class was requested
         foreach ($this->eventDispatchers as $dispatcher) {
-            $dispatcher->dispatch(new Event\ServiceRequested($serviceName));
+            $dispatcher->dispatch(new Event\ClassRequested($className));
         }
 
 
-        $image = new \ReflectionClass($serviceName);
+        $image = new \ReflectionClass($className);
 
         // If it is not instantiable, we cannot resolve it.
         if (!$image->isInstantiable()) {
-            throw new Error\UnresolvableClass(message: $serviceName);
+            throw new Error\UnresolvableClass(message: $className);
         }
 
         $constructor = $image->getConstructor();
 
         // If it has no constructor, we can just instantiate it.
         if ($constructor === null) {
-            return $this->finalize(new $serviceName());
+            return $this->finalize(new $className());
         }
 
         $parameters = $constructor->getParameters();
 
         // If it has a constructor, but no parameters, we can just instantiate it.
         if (count($parameters) === 0) {
-            return $this->finalize(new $serviceName());
+            return $this->finalize(new $className());
         }
 
         // Otherwise, we need to resolve the parameters as dependencies.
@@ -85,7 +87,7 @@ class Resolver
             if ($dependencyName === null) {
                 $type = $parameter->getType();
                 if ($type !== null && $type instanceof \ReflectionUnionType) {
-                    throw new Error\UnresolvableUnionType(message: $serviceName);
+                    throw new Error\UnresolvableUnionType(message: $className);
                 }
                 $dependency = $this->resolvePrimitive($parameter);
             } else {
@@ -183,7 +185,7 @@ class Resolver
 
         try {
             return $this->resolve(
-                serviceName: $name,
+                className: $name,
                 isDependency: true
             );
         } catch (Error\Unresolvable $e) {
@@ -198,7 +200,7 @@ class Resolver
     /**
      * Finalize an instance.
      *
-     * if $instance is a Cabinet\EventDispatcher, it will be added to the list of event dispatchers.
+     * if $instance is a Codex\EventDispatcher, it will be added to the list of event dispatchers.
      *
      * @template T of object
      * @param T $instance
@@ -211,7 +213,7 @@ class Resolver
         }
 
         foreach ($this->eventDispatchers as $dispatcher) {
-            $dispatcher->dispatch(new Event\ServiceResolved(service: $instance));
+            $dispatcher->dispatch(new Event\ClassResolved($instance));
         }
 
         return $instance;
