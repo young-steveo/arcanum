@@ -7,6 +7,7 @@ namespace Arcanum\Cabinet;
 use Psr\Container\ContainerInterface;
 use Arcanum\Codex\ClassResolver;
 use Arcanum\Codex\Resolver;
+use Arcanum\Flow\Pipeline;
 
 /**
  * @implements \ArrayAccess<class-string, mixed>
@@ -24,7 +25,7 @@ class Container implements \ArrayAccess, ContainerInterface
     protected array $providers = [];
 
     /**
-     * @var array<class-string, array<callable(object): object>>
+     * @var array<class-string, Pipeline>
      */
     protected array $decorators = [];
 
@@ -151,10 +152,10 @@ class Container implements \ArrayAccess, ContainerInterface
     public function decorator(string $serviceName, callable $decorator): void
     {
         if (!isset($this->decorators[$serviceName])) {
-            $this->decorators[$serviceName] = [];
+            $this->decorators[$serviceName] = new Pipeline();
         }
 
-        $this->decorators[$serviceName][] = $decorator;
+        $this->decorators[$serviceName] = $this->decorators[$serviceName]->pipe($decorator);
     }
 
     /**
@@ -217,16 +218,18 @@ class Container implements \ArrayAccess, ContainerInterface
         }
 
         // Apply decorators.
-        $decorators = $this->decorators[$offset] ?? [];
-        foreach ($decorators as $decorator) {
-            $instance = $decorator($instance);
+        if (!isset($this->decorators[$offset])) {
+            return $instance;
         }
+        $instance = $this->decorators[$offset]->send($instance);
 
-        // Remove the decorator if the provider is not a prototype.
         if (!$provider instanceof PrototypeProvider) {
+            // Remove the decorators if the provider is not a prototype.
             unset($this->decorators[$offset]);
-        }
 
+            // Cache the instance if the provider is not a prototype.
+            $this->providers[$offset] = SimpleProvider::fromFactory(fn() => $instance);
+        }
         return $instance;
     }
 
