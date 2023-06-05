@@ -9,10 +9,17 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Arcanum\Echo\Dispatcher;
 use Arcanum\Echo\Provider;
 use Arcanum\Echo\Event;
+use Arcanum\Echo\UnknownEvent;
+use Arcanum\Test\Echo\Fixture\SomethingHappened;
 use PHPUnit\Framework\Attributes\UsesClass;
 
 #[CoversClass(Dispatcher::class)]
 #[UsesClass(\Arcanum\Echo\UnknownEvent::class)]
+#[UsesClass(\Arcanum\Echo\Provider::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline::class)]
+#[UsesClass(\Arcanum\Flow\StandardProcessor::class)]
+#[UsesClass(\Arcanum\Flow\Interrupted::class)]
+#[UsesClass(Event::class)]
 final class DispatcherTest extends TestCase
 {
     public function testDispatch(): void
@@ -135,39 +142,19 @@ final class DispatcherTest extends TestCase
             $count++;
             return $event;
         };
-
-        /** @var Provider&\PHPUnit\Framework\MockObject\MockObject */
-        $provider = $this->getMockBuilder(Provider::class)
-            ->onlyMethods(['getListenersForEvent'])
-            ->getMock();
-
-        $provider
-            ->expects($this->once())
-            ->method('getListenersForEvent')
-            ->willReturn([
-                $listener,
-                function (Event $event) use (&$count): Event {
-                    $count++;
-                    $event->stopPropagation();
-                    return $event;
-                },
-                $listener, // should not be called
-            ]);
-
+        $provider = new Provider();
+        $provider->listen(Event::class, $listener);
+        $provider->listen(Event::class, function (Event $event) use (&$count): Event {
+            $count++;
+            $event->stopPropagation();
+            return $event;
+        });
+        $provider->listen(Event::class, function (Event $event): Event {
+            $this->fail('Listener called after propagation was stopped.');
+        });
 
         /** @var Event&\PHPUnit\Framework\MockObject\MockObject */
-        $event = $this->getMockBuilder(\Arcanum\Echo\Event::class)
-            ->onlyMethods(['stopPropagation', 'isPropagationStopped'])
-            ->getMock();
-
-        $event
-            ->expects($this->once())
-            ->method('stopPropagation');
-
-        $event
-            ->expects($this->exactly(3))
-            ->method('isPropagationStopped')
-            ->willReturnOnConsecutiveCalls(false, false, true);
+        $event = new SomethingHappened();
 
         $dispatcher = new \Arcanum\Echo\Dispatcher($provider);
 
@@ -211,7 +198,7 @@ final class DispatcherTest extends TestCase
             ->method('stopPropagation');
 
         $event
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('isPropagationStopped')
             ->willReturn(false);
 

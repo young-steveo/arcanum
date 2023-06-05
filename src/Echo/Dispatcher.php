@@ -18,26 +18,12 @@ class Dispatcher implements EventDispatcherInterface
      */
     public function dispatch(object $event): object
     {
-        if (!$event instanceof Event) {
-            $event = UnknownEvent::fromObject($event);
-        }
+        $event = $this->wrap($event);
 
-        $duplicates = [];
-        foreach ($this->provider->getListenersForEvent($event) as $listener) {
-            if ($event->isPropagationStopped()) {
-                break;
-            }
-
-            // We don't want to call the same listener twice for a single event.
-            // this check is needed because the same listener might be registered
-            // for events that inherit from each other.
-            if (in_array($listener, $duplicates, true)) {
-                continue;
-            }
-            $duplicates[] = $listener;
-
-            // execute the listener
-            $event = $listener($event);
+        try {
+            /** @var Event */
+            $event = $this->provider->listenerPipeline($event)->send($event);
+        } catch (\Arcanum\Flow\Interrupted) {
         }
 
         return $this->unwrap($event);
@@ -46,13 +32,22 @@ class Dispatcher implements EventDispatcherInterface
     /**
      * Unwrap an event.
      *
-     * We wrap unknown events with \Arcanum\Echo\UnknownEvent. This simplifies
-     * our listener logic, as we can always expect an \Arcanum\Echo\Event.
-     * However, the PSR-14 standard requires that we return the original event
+     * The PSR-14 standard requires that we return the original event
      * object.
      */
     protected function unwrap(Event $event): object
     {
         return $event instanceof UnknownEvent ? $event->payload : $event;
+    }
+
+    /**
+     * Wrap an event.
+     *
+     * We wrap unknown events with \Arcanum\Echo\UnknownEvent. This simplifies
+     * our listener logic, as we can always expect an \Arcanum\Echo\Event.
+     */
+    protected function wrap(object $event): Event
+    {
+        return $event instanceof Event ? $event : UnknownEvent::fromObject($event);
     }
 }
