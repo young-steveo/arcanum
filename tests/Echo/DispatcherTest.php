@@ -16,8 +16,8 @@ use PHPUnit\Framework\Attributes\UsesClass;
 #[CoversClass(Dispatcher::class)]
 #[UsesClass(\Arcanum\Echo\UnknownEvent::class)]
 #[UsesClass(\Arcanum\Echo\Provider::class)]
-#[UsesClass(\Arcanum\Flow\Pipeline::class)]
-#[UsesClass(\Arcanum\Flow\StandardProcessor::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\Pipeline::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\StandardProcessor::class)]
 #[UsesClass(\Arcanum\Flow\Interrupted::class)]
 #[UsesClass(Event::class)]
 final class DispatcherTest extends TestCase

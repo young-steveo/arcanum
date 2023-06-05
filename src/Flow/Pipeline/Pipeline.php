@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Flow;
+namespace Arcanum\Flow\Pipeline;
+
+use Arcanum\Flow\Stage;
 
 class Pipeline implements Pipelayer
 {
     /**
-     * @var array<int, Stage|callable(object, callable): object>
+     * @var array<int, Stage|callable(object): (object|null)>
      */
     protected $stages = [];
 
@@ -18,9 +20,9 @@ class Pipeline implements Pipelayer
     /**
      * Add a stage to the pipeline.
      *
-     * @param Stage|callable(object, callable): object $stage
+     * @param Stage|callable(object): (object|null) $stage
      */
-    public function pipe(callable|Stage $stage): Pipeline
+    public function pipe(callable|Stage $stage): Pipelayer
     {
         $this->stages[] = $stage;
         return $this;
@@ -37,12 +39,8 @@ class Pipeline implements Pipelayer
     /**
      * Single stage in a pipeline.
      */
-    public function __invoke(object $payload, callable $next = null): object|null
+    public function __invoke(object $payload): object|null
     {
-        $result = $this->send($payload);
-        if ($next) {
-            return $next($result);
-        }
-        return $result;
+        return $this->send($payload);
     }
 }

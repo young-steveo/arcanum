@@ -12,8 +12,8 @@ use Arcanum\Echo\Event;
 
 #[CoversClass(Provider::class)]
 #[UsesClass(\Arcanum\Echo\Event::class)]
-#[UsesClass(\Arcanum\Flow\Pipeline::class)]
-#[UsesClass(\Arcanum\Flow\StandardProcessor::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\Pipeline::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\StandardProcessor::class)]
 final class ProviderTest extends TestCase
 {
     public function testListen(): void

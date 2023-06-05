@@ -9,16 +9,19 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use Arcanum\Cabinet\Container;
 use Arcanum\Test\Fixture;
+use Arcanum\Test\Flow\Continuum\Fixture\BasicProgression;
 
 /**
  * Tests that require the full container.
  */
 #[CoversClass(Container::class)]
 #[UsesClass(\Arcanum\Codex\Resolver::class)]
-#[UsesClass(\Arcanum\Flow\Pipeline::class)]
-#[UsesClass(\Arcanum\Flow\StandardProcessor::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\Pipeline::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\StandardProcessor::class)]
 #[UsesClass(\Arcanum\Cabinet\SimpleProvider::class)]
 #[UsesClass(\Arcanum\Cabinet\PrototypeProvider::class)]
+#[UsesClass(\Arcanum\Flow\Continuum\Continuum::class)]
+#[UsesClass(\Arcanum\Flow\Continuum\StandardAdvancer::class)]
 final class IntegrationTest extends TestCase
 {
     public function testCreateContainer(): void
@@ -110,5 +113,47 @@ final class IntegrationTest extends TestCase
         // Assert
         $this->assertSame($third, $result);
         $this->assertSame($third, $shouldBeSame);
+    }
+
+    public function testMiddleware(): void
+    {
+        // Arrange
+        /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
+            ->onlyMethods(['resolve', 'resolveWith'])
+            ->getMock();
+
+        $service = new Fixture\SimpleService(new Fixture\SimpleDependency());
+
+        $resolver->expects($this->once())
+            ->method('resolve')
+            ->with(Fixture\SimpleService::class)
+            ->willReturnCallback(fn () => $service);
+
+        $container = Container::fromResolver($resolver);
+        $container->service(Fixture\SimpleService::class);
+
+        $container->middleware(
+            serviceName: Fixture\SimpleService::class,
+            middleware: BasicProgression::fromClosure(fn(object $service, callable $next) => $next())
+        );
+
+        $count = 0;
+        $container->middleware(
+            serviceName: Fixture\SimpleService::class,
+            middleware: BasicProgression::fromClosure(function (object $service, callable $next) use (&$count) {
+                $count++;
+                $next();
+            })
+        );
+
+        // Act
+        $result = $container->get(Fixture\SimpleService::class);
+        $shouldBeSame = $container->get(Fixture\SimpleService::class);
+
+        // Assert
+        $this->assertSame($service, $result);
+        $this->assertSame($service, $shouldBeSame);
+        $this->assertSame(2, $count);
     }
 }

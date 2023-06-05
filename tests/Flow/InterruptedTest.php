@@ -21,6 +21,6 @@ final class InterruptedTest extends TestCase
         $message = $interrupted->getMessage();
 
         // Assert
-        $this->assertSame('foo', $message);
+        $this->assertSame('Flow Interrupted: foo', $message);
     }
 }

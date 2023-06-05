@@ -7,7 +7,9 @@ namespace Arcanum\Cabinet;
 use Psr\Container\ContainerInterface;
 use Arcanum\Codex\ClassResolver;
 use Arcanum\Codex\Resolver;
-use Arcanum\Flow\Pipeline;
+use Arcanum\Flow\Pipeline\Pipeline;
+use Arcanum\Flow\Continuum\Continuum;
+use Arcanum\Flow\Continuum\Progression;
 
 /**
  * @implements \ArrayAccess<class-string, mixed>
@@ -25,9 +27,14 @@ class Container implements \ArrayAccess, ContainerInterface
     protected array $providers = [];
 
     /**
-     * @var array<class-string, Pipeline>
+     * @var array<class-string, \Arcanum\Flow\Pipeline\Pipelayer>
      */
     protected array $decorators = [];
+
+    /**
+     * @var array<class-string, \Arcanum\Flow\Continuum\Continuation>
+     */
+    protected array $middlewares = [];
 
     /**
      * Container uses a resolver to instantiate services.
@@ -159,6 +166,24 @@ class Container implements \ArrayAccess, ContainerInterface
     }
 
     /**
+     * Register a middleware on the container.
+     *
+     * Middleware are applied to the service every time it is requested from
+     * the container.
+     *
+     * @param class-string $serviceName
+     * @param Progression $middleware
+     */
+    public function middleware(string $serviceName, Progression $middleware): void
+    {
+        if (!isset($this->middlewares[$serviceName])) {
+            $this->middlewares[$serviceName] = new Continuum();
+        }
+
+        $this->middlewares[$serviceName] = $this->middlewares[$serviceName]->add($middleware);
+    }
+
+    /**
      * ArrayAccess methods
      */
 
@@ -218,19 +243,23 @@ class Container implements \ArrayAccess, ContainerInterface
         }
 
         // Apply decorators.
-        if (!isset($this->decorators[$offset])) {
+        if (isset($this->decorators[$offset])) {
+            $instance = $this->decorators[$offset]->send($instance);
+
+            if (!$provider instanceof PrototypeProvider) {
+                // Remove the decorators if the provider is not a prototype.
+                unset($this->decorators[$offset]);
+
+                // Cache the instance if the provider is not a prototype.
+                $this->providers[$offset] = SimpleProvider::fromFactory(fn() => $instance);
+            }
+        }
+
+        // Apply middlewares.
+        if (!isset($this->middlewares[$offset])) {
             return $instance;
         }
-        $instance = $this->decorators[$offset]->send($instance);
-
-        if (!$provider instanceof PrototypeProvider) {
-            // Remove the decorators if the provider is not a prototype.
-            unset($this->decorators[$offset]);
-
-            // Cache the instance if the provider is not a prototype.
-            $this->providers[$offset] = SimpleProvider::fromFactory(fn() => $instance);
-        }
-        return $instance;
+        return $this->middlewares[$offset]->send($instance);
     }
 
     /**

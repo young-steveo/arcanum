@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Flow;
+namespace Arcanum\Test\Flow\Pipeline;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Arcanum\Flow\Pipeline;
-use Arcanum\Flow\Processor;
+use Arcanum\Flow\Pipeline\Pipeline;
+use Arcanum\Flow\Pipeline\Processor;
 
 #[CoversClass(Pipeline::class)]
 final class PipelineTest extends TestCase

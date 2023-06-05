@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Arcanum\Echo;
 
 use Psr\EventDispatcher\ListenerProviderInterface;
-use Arcanum\Flow\Pipelayer;
-use Arcanum\Flow\Pipeline;
+use Arcanum\Flow\Pipeline\Pipelayer;
+use Arcanum\Flow\Pipeline\Pipeline;
 
 class Provider implements ListenerProviderInterface
 {
@@ -41,7 +41,7 @@ class Provider implements ListenerProviderInterface
     {
         $pipeline = new Pipeline();
         $duplicates = [];
-        /** @var callable(object, callable(): mixed): object $listener */
+        /** @var callable(object): object $listener */
         foreach ($this->getListenersForEvent($event) as $listener) {
             if (in_array($listener, $duplicates, true)) {
                 continue;
