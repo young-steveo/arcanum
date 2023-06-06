@@ -10,12 +10,12 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use Arcanum\Test\Fixture;
 use Arcanum\Cabinet\Error;
 use Arcanum\Cabinet\Container;
+use Arcanum\Codex\Error\UnresolvableClass;
 
 #[CoversClass(Container::class)]
 #[UsesClass(\Arcanum\Cabinet\SimpleProvider::class)]
 #[UsesClass(\Arcanum\Cabinet\PrototypeProvider::class)]
-#[UsesClass(\Arcanum\Cabinet\NullProvider::class)]
-#[UsesClass(Error\OutOfBounds::class)]
+#[UsesClass(UnresolvableClass::class)]
 #[UsesClass(Error\InvalidKey::class)]
 final class ContainerTest extends TestCase
 {
@@ -44,7 +44,7 @@ final class ContainerTest extends TestCase
         $this->assertSame($service, $container[Fixture\SimpleService::class]);
     }
 
-    public function testContainerThrowsOutOfBoundsIfArrayAccessOffsetDoesNotExist(): void
+    public function testContainerThrowsIfArrayAccessOffsetDoesNotExist(): void
     {
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
@@ -55,16 +55,18 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolveWith');
 
-        $resolver->expects($this->never())
-            ->method('resolve');
+        $resolver->expects($this->once())
+            ->method('resolve')
+            ->with(Fixture\DoesNotExist::class) /** @phpstan-ignore-line */
+            ->willThrowException(new UnresolvableClass());
 
         $container = Container::fromResolver($resolver);
 
         // Assert
-        $this->expectException(Error\OutOfBounds::class);
+        $this->expectException(UnresolvableClass::class);
 
         // Act
-        $container[Fixture\SimpleService::class]; /** @phpstan-ignore-line */
+        $container[Fixture\DoesNotExist::class]; /** @phpstan-ignore-line */
     }
 
     public function testContainerOffsetUnset(): void
@@ -162,7 +164,7 @@ final class ContainerTest extends TestCase
         $this->assertSame($service, $result);
     }
 
-    public function testContainerGetThrowsOutOfBoundsIfServiceDoesNotExist(): void
+    public function testContainerGetThrowsIfServiceDoesNotExist(): void
     {
         // Arrange
         /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
@@ -173,16 +175,18 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolveWith');
 
-        $resolver->expects($this->never())
-            ->method('resolve');
+        $resolver->expects($this->once())
+            ->method('resolve')
+            ->with(Fixture\DoesNotExist::class) /** @phpstan-ignore-line */
+            ->willThrowException(new UnresolvableClass());
 
         $container = Container::fromResolver($resolver);
 
         // Assert
-        $this->expectException(Error\OutOfBounds::class);
+        $this->expectException(UnresolvableClass::class);
 
         // Act
-        $container->get(Fixture\SimpleService::class);
+        $container->get(Fixture\DoesNotExist::class); /** @phpstan-ignore-line */
     }
 
     public function testContainerHas(): void

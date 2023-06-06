@@ -24,7 +24,7 @@ class PrototypeProvider extends Provider
     /**
      * Provide a service from the factory.
      */
-    public function __invoke(Container $container): object|null
+    public function __invoke(Container $container): object
     {
         return ($this->factory)($container);
     }
