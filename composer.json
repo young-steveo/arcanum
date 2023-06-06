@@ -32,7 +32,7 @@
         ],
         "check": [ "@cs-check", "@phpstan", "@phpunit" ],
         "cs-check": "bash contrib/cs-check",
-        "cs-fix": "phpcbf --colors --standard=./contrib/phpcs-ruleset.xml",
+        "cs-fix": "phpcbf --colors --standard=./contrib/phpcs-ruleset.xml --ignore=.coverage,.phpunit.cache",
         "phpstan": "bash contrib/phpstan",
         "phpunit": "phpunit --colors=always --coverage-html=tests/.coverage --configuration=contrib/phpunit.xml"
     }

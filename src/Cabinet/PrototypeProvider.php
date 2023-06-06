@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Arcanum\Cabinet;
 
-final class PrototypeProvider extends Provider
+class PrototypeProvider extends Provider
 {
     /**
      * PrototypeProvider is used by the framework to register prototype services.
@@ -16,9 +16,9 @@ final class PrototypeProvider extends Provider
     /**
      * Create a PrototypeProvider from a factory closure.
      */
-    public static function fromFactory(\Closure $factory): static
+    public static function fromFactory(\Closure $factory): self
     {
-        return new static($factory);
+        return new self($factory);
     }
 
     /**

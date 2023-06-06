@@ -6,10 +6,14 @@ namespace Arcanum\Test\Echo;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Arcanum\Echo\Provider;
 use Arcanum\Echo\Event;
 
 #[CoversClass(Provider::class)]
+#[UsesClass(\Arcanum\Echo\Event::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\Pipeline::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\StandardProcessor::class)]
 final class ProviderTest extends TestCase
 {
     public function testListen(): void
@@ -75,5 +79,31 @@ final class ProviderTest extends TestCase
             $count++;
         }
         $this->assertSame(3, $count);
+    }
+
+    public function testGetListenerPipeline(): void
+    {
+        // Arrange
+        $event = new Fixture\ChildTriggered();
+        $provider = new Provider();
+
+        $listener = fn (Event $event): Event => $event;
+
+        // Act
+        // all three of these should be returned
+        $provider->listen(Event::class, fn (Event $event): Event => $event);
+        $provider->listen(Fixture\ChildTriggered::class, fn (Event $event): Event => $event);
+        $provider->listen(Fixture\SomethingHappened::class, $listener);
+
+        // add one that should not be returned
+        $provider->listen(static::class, fn (Event $event): Event => $event);
+
+        // add one that is a duplicate.
+        $provider->listen(Event::class, $listener);
+
+        $result = $provider->listenerPipeline($event)->send($event);
+
+        // Assert
+        $this->assertSame($event, $result);
     }
 }
