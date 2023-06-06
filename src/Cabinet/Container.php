@@ -71,9 +71,7 @@ class Container implements \ArrayAccess, ContainerInterface
         if ($implementation === null) {
             $implementation = $serviceName;
         }
-        $this->factory($serviceName, function (Container $container) use ($implementation) {
-            return $container->resolver->resolve($implementation);
-        });
+        $this->factory($serviceName, $this->simpleFactory($implementation));
     }
 
     /**
@@ -129,9 +127,7 @@ class Container implements \ArrayAccess, ContainerInterface
      */
     public function prototype(string $serviceName): void
     {
-        $this->prototypeFactory($serviceName, function (Container $container) use ($serviceName) {
-            return $container->resolver->resolve($serviceName);
-        });
+        $this->prototypeFactory($serviceName, $this->simpleFactory($serviceName));
     }
 
     /**
@@ -184,6 +180,14 @@ class Container implements \ArrayAccess, ContainerInterface
     }
 
     /**
+     * @param class-string $serviceName
+     */
+    protected function simpleFactory(string $serviceName): \Closure
+    {
+        return fn(Container $container) => $container->resolver->resolve($serviceName);
+    }
+
+    /**
      * ArrayAccess methods
      */
 
@@ -227,7 +231,6 @@ class Container implements \ArrayAccess, ContainerInterface
      *
      * @param class-string $offset
      * @throws Error\InvalidKey
-     * @throws Error\OutOfBounds
      */
     public function offsetGet($offset): mixed
     {
@@ -236,11 +239,9 @@ class Container implements \ArrayAccess, ContainerInterface
         }
 
         // Provide the instance.
-        $provider = $this->providers[$offset] ?? new NullProvider();
+        $provider = $this->providers[$offset] ?? PrototypeProvider::fromFactory($this->simpleFactory($offset));
+
         $instance = $provider($this);
-        if (!$instance) {
-            throw new Error\OutOfBounds("No entry was found for this identifier: $offset");
-        }
 
         // Apply decorators.
         if (isset($this->decorators[$offset])) {
