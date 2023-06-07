@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Conveyor;
+namespace Arcanum\Conveyor\Middleware;
 
 final class InvalidDTO extends \InvalidArgumentException
 {
