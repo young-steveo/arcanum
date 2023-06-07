@@ -7,16 +7,19 @@ namespace Arcanum\Gather;
 class IgnoreCaseRegistry extends Registry
 {
     /**
+     * Map of lowercase keys to original keys.
+     *
      * @var array<string, string>
      */
     protected array $keyMap = [];
 
     /**
+     * Construct a Registry.
+     *
      * @param array<string, mixed> $data
      */
-    public function __construct(
-        array $data = [],
-    ) {
+    protected function __construct(array $data)
+    {
         parent::__construct($data);
 
         foreach (array_keys($data) as $key) {
@@ -24,6 +27,11 @@ class IgnoreCaseRegistry extends Registry
         }
     }
 
+    /**
+     * Get the value stored at the given key. The key is case-insensitive.
+     *
+     * Will return null if the key does not exist.
+     */
     public function get(string $id): mixed
     {
         $id = $this->keyMap[strtolower($id)] ?? $id;
@@ -31,6 +39,9 @@ class IgnoreCaseRegistry extends Registry
         return parent::get($id);
     }
 
+    /**
+     * Check if the given key exists. The key is case-insensitive.
+     */
     public function has(string $id): bool
     {
         $id = $this->keyMap[strtolower($id)] ?? $id;
@@ -38,6 +49,9 @@ class IgnoreCaseRegistry extends Registry
         return parent::has($id);
     }
 
+    /**
+     * Check if the given key exists. The key is case-insensitive.
+     */
     public function offsetExists(mixed $offset): bool
     {
         $offset = $this->keyMap[strtolower($offset)] ?? $offset;
@@ -45,6 +59,11 @@ class IgnoreCaseRegistry extends Registry
         return parent::offsetExists($offset);
     }
 
+    /**
+     * Get the value stored at the given key. The key is case-insensitive.
+     *
+     * Will return null if the key does not exist.
+     */
     public function offsetGet(mixed $offset): mixed
     {
         $offset = $this->keyMap[strtolower($offset)] ?? $offset;
@@ -52,6 +71,9 @@ class IgnoreCaseRegistry extends Registry
         return parent::offsetGet($offset);
     }
 
+    /**
+     * Set the value at the given key. The key is case-insensitive.
+     */
     public function offsetSet(mixed $offset, mixed $value): void
     {
         $offset = $this->keyMap[strtolower((string)$offset)] ?? $offset;
@@ -59,6 +81,9 @@ class IgnoreCaseRegistry extends Registry
         parent::offsetSet($offset, $value);
     }
 
+    /**
+     * Remove the value at the given key. The key is case-insensitive.
+     */
     public function offsetUnset(mixed $offset): void
     {
         $offset = $this->keyMap[strtolower((string)$offset)] ?? $offset;
@@ -66,31 +91,47 @@ class IgnoreCaseRegistry extends Registry
         parent::offsetUnset($offset);
     }
 
-    public function getString(string $key, string $default = ''): string
+    /**
+     * Return the value at the given key as a string. The key is
+     * case-insensitive.
+     */
+    public function asString(string $key, string $fallback = ''): string
     {
         $key = $this->keyMap[strtolower($key)] ?? $key;
 
-        return parent::getString($key, $default);
+        return parent::asString($key, $fallback);
     }
 
-    public function getInt(string $key, int $default = 0): int
+    /**
+     * Return the value at the given key as an integer. The key is
+     * case-insensitive.
+     */
+    public function asInt(string $key, int $fallback = 0): int
     {
         $key = $this->keyMap[strtolower($key)] ?? $key;
 
-        return parent::getInt($key, $default);
+        return parent::asInt($key, $fallback);
     }
 
-    public function getFloat(string $key, float $default = 0.0): float
+    /**
+     * Return the value at the given key as a float. The key is
+     * case-insensitive.
+     */
+    public function asFloat(string $key, float $fallback = 0.0): float
     {
         $key = $this->keyMap[strtolower($key)] ?? $key;
 
-        return parent::getFloat($key, $default);
+        return parent::asFloat($key, $fallback);
     }
 
-    public function getBool(string $key, bool $default = false): bool
+    /**
+     * Return the value at the given key as a boolean. The key is
+     * case-insensitive.
+     */
+    public function asBool(string $key, bool $fallback = false): bool
     {
         $key = $this->keyMap[strtolower($key)] ?? $key;
 
-        return parent::getBool($key, $default);
+        return parent::asBool($key, $fallback);
     }
 }
