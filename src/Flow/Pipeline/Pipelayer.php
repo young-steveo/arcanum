@@ -12,7 +12,7 @@ interface Pipelayer extends Sender
     /**
      * Add a stage to the pipeline.
      *
-     * @param Stage|callable(object, (null|callable)): object $stage
+     * @param Stage|callable(object): object $stage
      */
     public function pipe(callable|Stage $stage): Pipelayer;
 }

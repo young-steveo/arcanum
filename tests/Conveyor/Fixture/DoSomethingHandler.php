@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Fixture\Command;
+namespace Arcanum\Test\Conveyor\Fixture;
 
 final class DoSomethingHandler
 {
