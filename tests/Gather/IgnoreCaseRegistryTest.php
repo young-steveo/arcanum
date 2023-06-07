@@ -72,7 +72,7 @@ final class IgnoreCaseRegistryTest extends TestCase
         $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getString('FOo');
+        $get = $registry->asString('FOo');
 
         // Assert
         $this->assertSame('1b1a@1r1', $get);
@@ -84,7 +84,7 @@ final class IgnoreCaseRegistryTest extends TestCase
         $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getInt('FoO');
+        $get = $registry->asInt('FoO');
 
         // Assert
         $this->assertSame(1, $get);
@@ -96,7 +96,7 @@ final class IgnoreCaseRegistryTest extends TestCase
         $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getFloat('fOO');
+        $get = $registry->asFloat('fOO');
 
         // Assert
         $this->assertSame(1.0, $get);
@@ -108,7 +108,7 @@ final class IgnoreCaseRegistryTest extends TestCase
         $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getBool('foO');
+        $get = $registry->asBool('foO');
 
         // Assert
         $this->assertTrue($get);

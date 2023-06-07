@@ -77,24 +77,24 @@ class Registry implements Coercible, Serializable
         unset($this->data[$offset]);
     }
 
-    public function getAlpha(string $key, string $default = ''): string
+    public function asAlpha(string $key, string $fallback = ''): string
     {
-        return preg_replace('/[^a-zA-Z]/', '', $this->getString($key, $default)) ?? '';
+        return preg_replace('/[^a-zA-Z]/', '', $this->asString($key, $fallback)) ?? '';
     }
 
-    public function getAlnum(string $key, string $default = ''): string
+    public function asAlnum(string $key, string $fallback = ''): string
     {
-        return preg_replace('/[^a-zA-Z0-9]/', '', $this->getString($key, $default)) ?? '';
+        return preg_replace('/[^a-zA-Z0-9]/', '', $this->asString($key, $fallback)) ?? '';
     }
 
-    public function getDigits(string $key, string $default = ''): string
+    public function asDigits(string $key, string $fallback = ''): string
     {
-        return preg_replace('/[^0-9]/', '', $this->getString($key, $default)) ?? '';
+        return preg_replace('/[^0-9]/', '', $this->asString($key, $fallback)) ?? '';
     }
 
-    public function getString(string $key, string $default = ''): string
+    public function asString(string $key, string $fallback = ''): string
     {
-        $value = $this->data[$key] ?? $default;
+        $value = $this->data[$key] ?? $fallback;
         if (is_scalar($value)) {
             return (string) $value;
         }
@@ -104,29 +104,29 @@ class Registry implements Coercible, Serializable
         if (is_array($value)) {
             return json_encode($value, \JSON_THROW_ON_ERROR | \JSON_PRETTY_PRINT | \JSON_FORCE_OBJECT);
         }
-        return $default;
+        return $fallback;
     }
 
-    public function getInt(string $key, int $default = 0): int
+    public function asInt(string $key, int $fallback = 0): int
     {
-        $value = $this->data[$key] ?? $default;
+        $value = $this->data[$key] ?? $fallback;
         if (is_scalar($value)) {
             return (int) $value;
         }
-        return $default;
+        return $fallback;
     }
 
-    public function getFloat(string $key, float $default = 0.0): float
+    public function asFloat(string $key, float $fallback = 0.0): float
     {
-        $value = $this->data[$key] ?? $default;
+        $value = $this->data[$key] ?? $fallback;
         if (is_scalar($value)) {
             return (float) $value;
         }
-        return $default;
+        return $fallback;
     }
 
-    public function getBool(string $key, bool $default = false): bool
+    public function asBool(string $key, bool $fallback = false): bool
     {
-        return (bool) ($this->data[$key] ?? $default);
+        return (bool) ($this->data[$key] ?? $fallback);
     }
 }

@@ -9,11 +9,11 @@ namespace Arcanum\Gather;
  */
 interface Coercible extends Collection
 {
-    public function getAlpha(string $key, string $default = ''): string;
-    public function getAlnum(string $key, string $default = ''): string;
-    public function getDigits(string $key, string $default = ''): string;
-    public function getString(string $key, string $default = ''): string;
-    public function getInt(string $key, int $default = 0): int;
-    public function getFloat(string $key, float $default = 0.0): float;
-    public function getBool(string $key, bool $default = false): bool;
+    public function asAlpha(string $key, string $fallback = ''): string;
+    public function asAlnum(string $key, string $fallback = ''): string;
+    public function asDigits(string $key, string $fallback = ''): string;
+    public function asString(string $key, string $fallback = ''): string;
+    public function asInt(string $key, int $fallback = 0): int;
+    public function asFloat(string $key, float $fallback = 0.0): float;
+    public function asBool(string $key, bool $fallback = false): bool;
 }

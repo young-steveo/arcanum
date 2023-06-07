@@ -66,31 +66,31 @@ class IgnoreCaseRegistry extends Registry
         parent::offsetUnset($offset);
     }
 
-    public function getString(string $key, string $default = ''): string
+    public function asString(string $key, string $fallback = ''): string
     {
         $key = $this->keyMap[strtolower($key)] ?? $key;
 
-        return parent::getString($key, $default);
+        return parent::asString($key, $fallback);
     }
 
-    public function getInt(string $key, int $default = 0): int
+    public function asInt(string $key, int $fallback = 0): int
     {
         $key = $this->keyMap[strtolower($key)] ?? $key;
 
-        return parent::getInt($key, $default);
+        return parent::asInt($key, $fallback);
     }
 
-    public function getFloat(string $key, float $default = 0.0): float
+    public function asFloat(string $key, float $fallback = 0.0): float
     {
         $key = $this->keyMap[strtolower($key)] ?? $key;
 
-        return parent::getFloat($key, $default);
+        return parent::asFloat($key, $fallback);
     }
 
-    public function getBool(string $key, bool $default = false): bool
+    public function asBool(string $key, bool $fallback = false): bool
     {
         $key = $this->keyMap[strtolower($key)] ?? $key;
 
-        return parent::getBool($key, $default);
+        return parent::asBool($key, $fallback);
     }
 }

@@ -134,7 +134,7 @@ final class RegistryTest extends TestCase
         $registry = new Registry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getAlpha('foo');
+        $get = $registry->asAlpha('foo');
 
         // Assert
         $this->assertSame('bar', $get);
@@ -146,7 +146,7 @@ final class RegistryTest extends TestCase
         $registry = new Registry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getAlnum('foo');
+        $get = $registry->asAlnum('foo');
 
         // Assert
         $this->assertSame('1b1a1r1', $get);
@@ -158,7 +158,7 @@ final class RegistryTest extends TestCase
         $registry = new Registry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getDigits('foo');
+        $get = $registry->asDigits('foo');
 
         // Assert
         $this->assertSame('1111', $get);
@@ -170,7 +170,7 @@ final class RegistryTest extends TestCase
         $registry = new Registry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getString('foo');
+        $get = $registry->asString('foo');
 
         // Assert
         $this->assertSame('1b1a@1r1', $get);
@@ -182,7 +182,7 @@ final class RegistryTest extends TestCase
         $registry = new Registry(['foo' => null]);
 
         // Act
-        $get = $registry->getString('foo', 'bar');
+        $get = $registry->asString('foo', 'bar');
 
         // Assert
         $this->assertSame('bar', $get);
@@ -199,7 +199,7 @@ final class RegistryTest extends TestCase
         }]);
 
         // Act
-        $get = $registry->getString('foo');
+        $get = $registry->asString('foo');
 
         // Assert
         $this->assertSame('bar', $get);
@@ -211,7 +211,7 @@ final class RegistryTest extends TestCase
         $registry = new Registry(['foo' => ['bar']]);
 
         // Act
-        $get = $registry->getString('foo');
+        $get = $registry->asString('foo');
 
         // Assert
         $this->assertJsonStringEqualsJsonString('["bar"]', $get);
@@ -224,7 +224,7 @@ final class RegistryTest extends TestCase
         }]);
 
         // Act
-        $get = $registry->getString('foo', 'bar');
+        $get = $registry->asString('foo', 'bar');
 
         // Assert
         $this->assertSame('bar', $get);
@@ -236,7 +236,7 @@ final class RegistryTest extends TestCase
         $registry = new Registry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getInt('foo');
+        $get = $registry->asInt('foo');
 
         // Assert
         $this->assertSame(1, $get);
@@ -249,7 +249,7 @@ final class RegistryTest extends TestCase
         }]);
 
         // Act
-        $get = $registry->getInt('foo', 10);
+        $get = $registry->asInt('foo', 10);
 
         // Assert
         $this->assertSame(10, $get);
@@ -261,7 +261,7 @@ final class RegistryTest extends TestCase
         $registry = new Registry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getFloat('foo');
+        $get = $registry->asFloat('foo');
 
         // Assert
         $this->assertSame(1.0, $get);
@@ -274,7 +274,7 @@ final class RegistryTest extends TestCase
         }]);
 
         // Act
-        $get = $registry->getFloat('foo', 10.0);
+        $get = $registry->asFloat('foo', 10.0);
 
         // Assert
         $this->assertSame(10.0, $get);
@@ -286,7 +286,7 @@ final class RegistryTest extends TestCase
         $registry = new Registry(['foo' => '1b1a@1r1']);
 
         // Act
-        $get = $registry->getBool('foo');
+        $get = $registry->asBool('foo');
 
         // Assert
         $this->assertTrue($get);
