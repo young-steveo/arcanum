@@ -17,7 +17,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testHasAndGet(): void
     {
         // Arrange
-        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
+        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
 
         // Act
         $has = $registry->has('fOo');
@@ -33,7 +33,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetSetViaArrayAccess(): void
     {
         // Arrange
-        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
+        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
 
         // Act
         $set = isset($registry['fOo']);
@@ -51,7 +51,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testOffsetSetGetExistsUnset(): void
     {
         // Arrange
-        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
+        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
 
         // Act
         $set = $registry->offsetExists('fOo');
@@ -69,7 +69,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetString(): void
     {
         // Arrange
-        $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
+        $registry = IgnoreCaseRegistry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asString('FOo');
@@ -81,7 +81,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetInt(): void
     {
         // Arrange
-        $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
+        $registry = IgnoreCaseRegistry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asInt('FoO');
@@ -93,7 +93,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetFloat(): void
     {
         // Arrange
-        $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
+        $registry = IgnoreCaseRegistry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asFloat('fOO');
@@ -105,7 +105,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetBool(): void
     {
         // Arrange
-        $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
+        $registry = IgnoreCaseRegistry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asBool('foO');

@@ -11,10 +11,24 @@ use Arcanum\Gather\Registry;
 #[CoversClass(Registry::class)]
 final class RegistryTest extends TestCase
 {
+    public function testCreate(): void
+    {
+        // Arrange
+        $registry = Registry::create();
+
+        // Act
+        $has = $registry->has('foo');
+        $get = $registry->get('foo');
+
+        // Assert
+        $this->assertFalse($has);
+        $this->assertNull($get);
+    }
+
     public function testHasAndGet(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => 'bar']);
+        $registry = Registry::fromData(['foo' => 'bar']);
 
         // Act
         $has = $registry->has('foo');
@@ -30,7 +44,7 @@ final class RegistryTest extends TestCase
     public function testSerializeAndUnserialize(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => 'bar']);
+        $registry = Registry::fromData(['foo' => 'bar']);
 
         // Act
         $serialized = serialize($registry);
@@ -45,7 +59,7 @@ final class RegistryTest extends TestCase
     public function testToString(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => 'bar']);
+        $registry = Registry::fromData(['foo' => 'bar']);
 
         // Act
         $string = (string) $registry;
@@ -57,7 +71,7 @@ final class RegistryTest extends TestCase
     public function testJsonEncodeAndDecode(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => 'bar']);
+        $registry = Registry::fromData(['foo' => 'bar']);
 
         // Act
         $encoded = json_encode($registry) ?: '';
@@ -71,7 +85,7 @@ final class RegistryTest extends TestCase
     public function testAsIterator(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => 'bar']);
+        $registry = Registry::fromData(['foo' => 'bar']);
 
         // Act & Assert
         foreach ($registry as $key => $value) {
@@ -83,7 +97,7 @@ final class RegistryTest extends TestCase
     public function testCount(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => 'bar']);
+        $registry = Registry::fromData(['foo' => 'bar']);
 
         // Act
         $count = count($registry);
@@ -95,7 +109,7 @@ final class RegistryTest extends TestCase
     public function assertGetSetViaArrayAccess(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => 'bar']);
+        $registry = Registry::fromData(['foo' => 'bar']);
 
         // Act
         $set = isset($registry['foo']);
@@ -113,7 +127,7 @@ final class RegistryTest extends TestCase
     public function testOffsetSetGetExistsUnset(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => 'bar']);
+        $registry = Registry::fromData(['foo' => 'bar']);
 
         // Act
         $set = $registry->offsetExists('foo');
@@ -131,7 +145,7 @@ final class RegistryTest extends TestCase
     public function testGetAlpha(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => '1b1a@1r1']);
+        $registry = Registry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asAlpha('foo');
@@ -143,7 +157,7 @@ final class RegistryTest extends TestCase
     public function testGetAlnum(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => '1b1a@1r1']);
+        $registry = Registry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asAlnum('foo');
@@ -155,7 +169,7 @@ final class RegistryTest extends TestCase
     public function testGetDigits(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => '1b1a@1r1']);
+        $registry = Registry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asDigits('foo');
@@ -167,7 +181,7 @@ final class RegistryTest extends TestCase
     public function testGetString(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => '1b1a@1r1']);
+        $registry = Registry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asString('foo');
@@ -179,7 +193,7 @@ final class RegistryTest extends TestCase
     public function testGetStringForNullValue(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => null]);
+        $registry = Registry::fromData(['foo' => null]);
 
         // Act
         $get = $registry->asString('foo', 'bar');
@@ -191,7 +205,7 @@ final class RegistryTest extends TestCase
     public function testGetStringForObjectThatDefinesToString(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => new class () {
+        $registry = Registry::fromData(['foo' => new class () {
             public function __toString(): string
             {
                 return 'bar';
@@ -208,7 +222,7 @@ final class RegistryTest extends TestCase
     public function testGetStringForArray(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => ['bar']]);
+        $registry = Registry::fromData(['foo' => ['bar']]);
 
         // Act
         $get = $registry->asString('foo');
@@ -220,7 +234,7 @@ final class RegistryTest extends TestCase
     public function testGetStringReturnsDefaultIfCannotCoerceToString(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => new class () {
+        $registry = Registry::fromData(['foo' => new class () {
         }]);
 
         // Act
@@ -233,7 +247,7 @@ final class RegistryTest extends TestCase
     public function testGetInt(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => '1b1a@1r1']);
+        $registry = Registry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asInt('foo');
@@ -245,7 +259,7 @@ final class RegistryTest extends TestCase
     public function testGetIntReturnsDefaultIfCannotCoerceIntoInt(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => new class (){
+        $registry = Registry::fromData(['foo' => new class (){
         }]);
 
         // Act
@@ -258,7 +272,7 @@ final class RegistryTest extends TestCase
     public function testGetFloat(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => '1b1a@1r1']);
+        $registry = Registry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asFloat('foo');
@@ -270,7 +284,7 @@ final class RegistryTest extends TestCase
     public function testGetFloatReturnsDefaultIfCannotCoerceIntoFloat(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => new class (){
+        $registry = Registry::fromData(['foo' => new class (){
         }]);
 
         // Act
@@ -283,7 +297,7 @@ final class RegistryTest extends TestCase
     public function testGetBool(): void
     {
         // Arrange
-        $registry = new Registry(['foo' => '1b1a@1r1']);
+        $registry = Registry::fromData(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asBool('foo');

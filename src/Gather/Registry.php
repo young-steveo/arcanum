@@ -4,16 +4,40 @@ declare(strict_types=1);
 
 namespace Arcanum\Gather;
 
+/** @phpstan-consistent-constructor */
 class Registry implements Coercible, Serializable
 {
     /**
+     * Construct a Registry.
+     *
      * @param array<string, mixed> $data
      */
-    public function __construct(
-        protected array $data = [],
+    protected function __construct(
+        protected array $data,
     ) {
     }
 
+    /**
+     * Construct a Registry with default data.
+     *
+     * @param array<string, mixed> $data
+     */
+    public static function fromData(array $data): static
+    {
+        return new static($data);
+    }
+
+    /**
+     * Construct an empty Registry.
+     */
+    public static function create(): static
+    {
+        return new static([]);
+    }
+
+    /**
+     * @return array<string, mixed> $data
+     */
     public function __serialize(): array
     {
         return $this->data;
