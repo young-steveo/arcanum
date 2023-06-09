@@ -56,6 +56,18 @@ final class RegistryTest extends TestCase
         $this->assertEquals($registry->get('foo'), $unserialized->get('foo'));
     }
 
+    public function testToArray(): void
+    {
+        // Arrange
+        $registry = Registry::fromData(['foo' => 'bar']);
+
+        // Act
+        $array = $registry->toArray();
+
+        // Assert
+        $this->assertEquals(['foo' => 'bar'], $array);
+    }
+
     public function testToString(): void
     {
         // Arrange
@@ -104,6 +116,19 @@ final class RegistryTest extends TestCase
 
         // Assert
         $this->assertSame(1, $count);
+    }
+
+    public function testSet(): void
+    {
+        // Arrange
+        $registry = Registry::fromData(['foo' => 'bar']);
+
+        // Act
+        $registry->set('foo', 'baz');
+        $get = $registry->get('foo');
+
+        // Assert
+        $this->assertSame('baz', $get);
     }
 
     public function assertGetSetViaArrayAccess(): void

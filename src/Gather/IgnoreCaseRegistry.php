@@ -28,6 +28,14 @@ class IgnoreCaseRegistry extends Registry
     }
 
     /**
+     * Get the original key for the given key.
+     */
+    public function getKey(string $key): string
+    {
+        return $this->keyMap[strtolower($key)] ?? $key;
+    }
+
+    /**
      * Get the value stored at the given key. The key is case-insensitive.
      *
      * Will return null if the key does not exist.
@@ -47,6 +55,18 @@ class IgnoreCaseRegistry extends Registry
         $id = $this->keyMap[strtolower($id)] ?? $id;
 
         return parent::has($id);
+    }
+
+    /**
+     * Set the value at the given key. The key is case-insensitive.
+     */
+    public function set(string $id, mixed $value): void
+    {
+        $lowerID = strtolower($id);
+        if (!isset($this->keyMap[$lowerID])) {
+            $this->keyMap[$lowerID] = $id;
+        }
+        parent::set($this->keyMap[$lowerID], $value);
     }
 
     /**
@@ -76,9 +96,12 @@ class IgnoreCaseRegistry extends Registry
      */
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        $offset = $this->keyMap[strtolower((string)$offset)] ?? $offset;
+        $lowerOffset = strtolower((string)$offset);
+        if (!isset($this->keyMap[$lowerOffset])) {
+            $this->keyMap[$lowerOffset] = (string)$offset;
+        }
 
-        parent::offsetSet($offset, $value);
+        parent::offsetSet($this->keyMap[$lowerOffset], $value);
     }
 
     /**
@@ -86,8 +109,9 @@ class IgnoreCaseRegistry extends Registry
      */
     public function offsetUnset(mixed $offset): void
     {
-        $offset = $this->keyMap[strtolower((string)$offset)] ?? $offset;
-
+        $lowerOffset = strtolower((string)$offset);
+        $offset = $this->keyMap[$lowerOffset] ?? $offset;
+        unset($this->keyMap[$lowerOffset]);
         parent::offsetUnset($offset);
     }
 

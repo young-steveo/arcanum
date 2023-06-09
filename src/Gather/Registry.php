@@ -89,6 +89,24 @@ class Registry implements Coercible, Serializable
     }
 
     /**
+     * Set the value at the given key.
+     */
+    public function set(string $id, mixed $value): void
+    {
+        $this->data[$id] = $value;
+    }
+
+    /**
+     * Return the data as an array.
+     *
+     * @return array<string, mixed> $data
+     */
+    public function toArray(): array
+    {
+        return $this->__serialize();
+    }
+
+    /**
      * Return the data as an array iterator.
      */
     public function getIterator(): \Traversable

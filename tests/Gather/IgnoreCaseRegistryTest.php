@@ -66,6 +66,19 @@ final class IgnoreCaseRegistryTest extends TestCase
         $this->assertNull($empty);
     }
 
+    public function testNewKeysArePreservedIfNotAddedByConstructor(): void
+    {
+        // Arrange
+        $registry = IgnoreCaseRegistry::create();
+
+        // Act
+        $registry['baz'] = 'qux';
+        $get = $registry['bAz'];
+
+        // Assert
+        $this->assertSame('qux', $get);
+    }
+
     public function testGetString(): void
     {
         // Arrange
@@ -112,5 +125,42 @@ final class IgnoreCaseRegistryTest extends TestCase
 
         // Assert
         $this->assertTrue($get);
+    }
+
+    public function testSet(): void
+    {
+        // Arrange
+        $registry = IgnoreCaseRegistry::create();
+
+        // Act
+        $registry->set('foo', 'bar');
+        $get = $registry->get('FOO');
+
+        // Assert
+        $this->assertSame('bar', $get);
+    }
+
+    public function testGetKey(): void
+    {
+        // Arrange
+        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
+
+        // Act
+        $get = $registry->getKey('fOo');
+
+        // Assert
+        $this->assertSame('foo', $get);
+    }
+
+    public function testGetKeyNotSet(): void
+    {
+        // Arrange
+        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
+
+        // Act
+        $get = $registry->getKey('nope');
+
+        // Assert
+        $this->assertSame('nope', $get);
     }
 }
