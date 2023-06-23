@@ -163,4 +163,17 @@ final class IgnoreCaseRegistryTest extends TestCase
         // Assert
         $this->assertSame('nope', $get);
     }
+
+    public function testSerializeUnserialize(): void
+    {
+        // Arrange
+        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
+
+        // Act
+        $serialized = serialize($registry);
+        $unserialized = unserialize($serialized);
+
+        // Assert
+        $this->assertEquals($registry, $unserialized);
+    }
 }

@@ -158,4 +158,30 @@ class IgnoreCaseRegistry extends Registry
 
         return parent::asBool($key, $fallback);
     }
+
+    /**
+     * Return the data for serialization.
+     *
+     * @return array<string, mixed> $data
+     */
+    public function __serialize(): array
+    {
+        $data = $this->data;
+        $data['@!*__keyMap'] = $this->keyMap;
+        return $data;
+    }
+
+    /**
+     * Accept the data for unserialization.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->data = $data;
+        if (isset($data['@!*__keyMap']) && is_array($data['@!*__keyMap'])) {
+            $this->keyMap = $data['@!*__keyMap'];
+            unset($this->data['@!*__keyMap']);
+        }
+    }
 }

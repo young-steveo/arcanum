@@ -272,13 +272,13 @@ final class RegistryTest extends TestCase
     public function testGetInt(): void
     {
         // Arrange
-        $registry = Registry::fromData(['foo' => '1b1a@1r1']);
+        $registry = Registry::fromData(['foo' => '10101']);
 
         // Act
         $get = $registry->asInt('foo');
 
         // Assert
-        $this->assertSame(1, $get);
+        $this->assertSame(10101, $get);
     }
 
     public function testGetIntReturnsDefaultIfCannotCoerceIntoInt(): void
