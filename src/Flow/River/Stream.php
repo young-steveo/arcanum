@@ -30,8 +30,9 @@ use Arcanum\Gather\Registry;
  */
 class Stream implements Copyable, \Stringable
 {
-    private const READABLE_MODES = '/r|a\+|ab\+|w\+|wb\+|x\+|xb\+|c\+|cb\+/';
-    private const WRITABLE_MODES = '/a|w|r\+|rb\+|rw|x|c/';
+    /**
+     * Registry of seekable, readable, and writable properties.
+     */
     protected Registry $properties;
 
     /**
@@ -47,18 +48,22 @@ class Stream implements Copyable, \Stringable
 
         $meta = $this->getMetadata();
         if (is_array($meta)) {
-            $this->properties = new Registry([
-                'seekable' => $meta['seekable'],
-                'readable' => (bool) preg_match(self::READABLE_MODES, $meta['mode']),
-                'writable' => (bool) preg_match(self::WRITABLE_MODES, $meta['mode'])
-            ]);
+            $this->setProperties(
+                seekable: $meta['seekable'],
+                readable: (bool) preg_match('/r|a\+|ab\+|w\+|wb\+|x\+|xb\+|c\+|cb\+/', $meta['mode']),
+                writable: (bool) preg_match('/a|w|r\+|rb\+|rw|x|c/', $meta['mode'])
+            );
         } else {
-            $this->properties = new Registry([
-                'seekable' => false,
-                'readable' => false,
-                'writable' => false
-            ]);
+            $this->setProperties(seekable: false, readable: false, writable: false);
         }
+    }
+
+    /**
+     * Set the stream properties.
+     */
+    protected function setProperties(bool $seekable, bool $readable, bool $writable): void
+    {
+        $this->properties = new Registry(compact('seekable', 'readable', 'writable'));
     }
 
     /**
@@ -141,6 +146,9 @@ class Stream implements Copyable, \Stringable
         $this->seek(0);
     }
 
+    /**
+     * Seek the stream to a new position.
+     */
     public function seek(int $offset, int $whence = SEEK_SET): void
     {
         $this->guardDetachedSource();
@@ -153,7 +161,6 @@ class Stream implements Copyable, \Stringable
             throw new UnseekableStream("Unable to seek to stream position $offset with whence $whence");
         }
     }
-
 
     /**
      * Close the stream and any underlying resources.
@@ -189,12 +196,7 @@ class Stream implements Copyable, \Stringable
         $source = $this->source;
         unset($this->source);
         $this->size = 0;
-        $this->properties = new Registry([
-            'seekable' => false,
-            'readable' => false,
-            'writable' => false
-        ]);
-
+        $this->setProperties(seekable: false, readable: false, writable: false);
         return $source->export();
     }
 
@@ -218,6 +220,9 @@ class Stream implements Copyable, \Stringable
         return $meta[$key] ?? null;
     }
 
+    /**
+     * Get the stream contents as a string.
+     */
     public function getContents(): string
     {
         $this->guardReadable();
@@ -233,6 +238,9 @@ class Stream implements Copyable, \Stringable
         return $contents;
     }
 
+    /**
+     * Get the size of the stream if known.
+     */
     public function getSize(): ?int
     {
         $this->guardDetachedSource();
@@ -252,6 +260,9 @@ class Stream implements Copyable, \Stringable
         return null;
     }
 
+    /**
+     * Clear the stat cache.
+     */
     protected function clearCache(): void
     {
         $meta = $this->getMetadata();
@@ -308,6 +319,9 @@ class Stream implements Copyable, \Stringable
         return $result;
     }
 
+    /**
+     * Throw an exception if the stream is detached.
+     */
     protected function guardDetachedSource(): void
     {
         if (!isset($this->source)) {
@@ -315,6 +329,9 @@ class Stream implements Copyable, \Stringable
         }
     }
 
+    /**
+     * Throw an exception if the stream is not readable.
+     */
     protected function guardReadable(): void
     {
         $this->guardDetachedSource();
@@ -324,6 +341,9 @@ class Stream implements Copyable, \Stringable
         }
     }
 
+    /**
+     * Copy the stream to another stream.
+     */
     public function copyTo(StreamInterface $output): void
     {
         $bytes = 8192;
