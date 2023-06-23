@@ -22,7 +22,7 @@ final class IntegrationTest extends TestCase
     public function testContainerService(): void
     {
         // Arrange
-        $container = Container::create();
+        $container = new Container();
         $container->service(Fixture\SimpleClass::class);
 
         // Act
@@ -37,7 +37,7 @@ final class IntegrationTest extends TestCase
     public function testResolveDependencies(): void
     {
         // Arrange
-        $container = Container::create();
+        $container = new Container();
         $container->service(Fixture\SimpleClass::class);
         $container->service(Fixture\SimpleDependency::class);
 
@@ -52,7 +52,7 @@ final class IntegrationTest extends TestCase
     public function testResolveDependenciesNotRegisteredButFindable(): void
     {
         // Arrange
-        $container = Container::create();
+        $container = new Container();
         $container->service(Fixture\SimpleClass::class);
 
         // Act
@@ -66,7 +66,7 @@ final class IntegrationTest extends TestCase
     public function testPrototype(): void
     {
         // Arrange
-        $container = Container::create();
+        $container = new Container();
         $container->prototype(Fixture\SimpleClass::class);
 
         // Act
@@ -81,7 +81,7 @@ final class IntegrationTest extends TestCase
     public function testResolveRegisteredInterface(): void
     {
         // Arrange
-        $container = Container::create();
+        $container = new Container();
         $container->service(Fixture\ServiceWithInterface::class);
         $container->service(Fixture\ServiceInterface::class, Fixture\ConcreteService::class);
 

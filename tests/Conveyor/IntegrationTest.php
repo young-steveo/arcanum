@@ -20,8 +20,10 @@ use Arcanum\Test\Conveyor\Fixture\DoSomethingResult;
 #[CoversClass(MiddlewareBus::class)]
 #[UsesClass(\Arcanum\Flow\Pipeline\Pipeline::class)]
 #[UsesClass(\Arcanum\Flow\Pipeline\StandardProcessor::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\DecoratorSystem::class)]
 #[UsesClass(\Arcanum\Flow\Continuum\Continuum::class)]
 #[UsesClass(\Arcanum\Flow\Continuum\StandardAdvancer::class)]
+#[UsesClass(\Arcanum\Flow\Continuum\MiddlewareCollection::class)]
 #[UsesClass(Container::class)]
 #[UsesClass(\Arcanum\Cabinet\PrototypeProvider::class)]
 #[UsesClass(\Arcanum\Codex\Event\ClassRequested::class)]
@@ -36,7 +38,7 @@ final class IntegrationTest extends TestCase
     public function testSimpleDispatch(): void
     {
         // Arrange
-        $bus = new MiddlewareBus(Container::create());
+        $bus = new MiddlewareBus(new Container());
 
         // Act
         $result = $bus->dispatch(new DoSomething('test'));
@@ -49,7 +51,7 @@ final class IntegrationTest extends TestCase
     public function testDispatchWithAllFilters(): void
     {
         // Arrange
-        $bus = new MiddlewareBus(Container::create());
+        $bus = new MiddlewareBus(new Container());
         $bus->before(
             new FinalFilter(),
             new NonPublicMethodFilter(),
