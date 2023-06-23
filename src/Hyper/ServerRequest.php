@@ -11,7 +11,7 @@ use Arcanum\Flow\River\CachingStream;
 use Arcanum\Flow\River\Stream;
 use Arcanum\Flow\River\LazyResource;
 use Arcanum\Gather\Registry;
-use Arcanum\Hyper\URI\URI;
+use Arcanum\Hyper\URI\Spec;
 use Arcanum\Hyper\Files\UploadedFiles;
 
 class ServerRequest extends Request implements ServerRequestInterface
@@ -58,7 +58,7 @@ class ServerRequest extends Request implements ServerRequestInterface
         $serverParams = new Registry($_SERVER);
         $method = RequestMethod::fromString($serverParams->asString('REQUEST_METHOD', 'GET'));
         $headers = new Headers(getallheaders());
-        $uri = URI::fromServerParams($serverParams);
+        $uri = Spec::fromServerParams($serverParams);
         $body = CachingStream::fromStream(new Stream(LazyResource::for('php://input', 'r+')));
         $protocolVersion = Version::fromString(
             str_replace('HTTP/', '', $serverParams->asString('SERVER_PROTOCOL', '1.1'))
