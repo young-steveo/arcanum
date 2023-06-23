@@ -55,9 +55,9 @@ class ServerRequest extends Request implements ServerRequestInterface
     public static function fromGlobals(): ServerRequestInterface
     {
 
-        $serverParams = Registry::fromData($_SERVER);
+        $serverParams = new Registry($_SERVER);
         $method = RequestMethod::fromString($serverParams->asString('REQUEST_METHOD', 'GET'));
-        $headers = Headers::fromData(getallheaders());
+        $headers = new Headers(getallheaders());
         $uri = URI::fromServerParams($serverParams);
         $body = CachingStream::fromStream(new Stream(LazyResource::for('php://input', 'r+')));
         $protocolVersion = Version::fromString(

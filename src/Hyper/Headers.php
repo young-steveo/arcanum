@@ -13,7 +13,7 @@ class Headers extends IgnoreCaseRegistry
      *
      * @param array<string, mixed> $data
      */
-    protected function __construct(array $data)
+    public function __construct(array $data)
     {
         $cleanData = [];
         foreach ($data as $header => $values) {

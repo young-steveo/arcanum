@@ -11,6 +11,7 @@ use Arcanum\Flow\River\Stream;
 use Arcanum\Flow\River\LazyResource;
 use Arcanum\Flow\River\Bank;
 use Arcanum\Hyper\Files\InvalidFile;
+use Arcanum\Gather\Registry;
 use Psr\Http\Message\StreamInterface;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -23,6 +24,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
 #[UsesClass(InvalidFile::class)]
 #[UsesClass(LazyResource::class)]
 #[UsesClass(Bank::class)]
+#[UsesClass(Registry::class)]
 final class UploadedFileTest extends TestCase
 {
     public function testUploadedFile(): void

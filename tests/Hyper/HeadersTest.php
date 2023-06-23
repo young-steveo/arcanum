@@ -19,7 +19,7 @@ final class HeadersTest extends TestCase
     public function testHeaders(): void
     {
         // Arrange
-        $headers = Headers::fromData([
+        $headers = new Headers([
             'Host' => 'en.wikipedia.org:8080',
             'Origin' => 'http://www.example-social-network.com',
         ]);
@@ -36,7 +36,7 @@ final class HeadersTest extends TestCase
     public function testSetHeader(): void
     {
         // Arrange
-        $headers = Headers::fromData([
+        $headers = new Headers([
             'Host' => 'en.wikipedia.org:8080',
             'Origin' => 'http://www.example-social-network.com',
         ]);
@@ -53,7 +53,7 @@ final class HeadersTest extends TestCase
     public function testSetHeaderOffset(): void
     {
         // Arrange
-        $headers = Headers::fromData([
+        $headers = new Headers([
             'Host' => 'en.wikipedia.org:8080',
             'Origin' => 'http://www.example-social-network.com',
         ]);
@@ -70,7 +70,7 @@ final class HeadersTest extends TestCase
     public function testSerialize(): void
     {
         // Arrange
-        $headers = Headers::fromData([
+        $headers = new Headers([
             'Host' => 'en.wikipedia.org:8080',
             'Origin' => 'http://www.example-social-network.com',
         ]);
@@ -86,7 +86,7 @@ final class HeadersTest extends TestCase
     public function testHeaderSetThrowsInvalidArgumentExceptionIfKeyIsNotString(): void
     {
         // Arrange
-        $headers = Headers::fromData([
+        $headers = new Headers([
             'Host' => 'en.wikipedia.org:8080',
             'Origin' => 'http://www.example-social-network.com',
         ]);
@@ -101,7 +101,7 @@ final class HeadersTest extends TestCase
     public function testHeaderSetThrowsInvalidArgumentExceptionIfHeaderNameIsInvalidFormat(): void
     {
         // Arrange
-        $headers = Headers::fromData([
+        $headers = new Headers([
             'Host' => 'en.wikipedia.org:8080',
             'Origin' => 'http://www.example-social-network.com',
         ]);
@@ -116,7 +116,7 @@ final class HeadersTest extends TestCase
     public function testHeaderSetThrowsInvalidArgumentExceptionIfHeaderValueIsNotString(): void
     {
         // Arrange
-        $headers = Headers::fromData([
+        $headers = new Headers([
             'Host' => 'en.wikipedia.org:8080',
             'Origin' => 'http://www.example-social-network.com',
         ]);
@@ -131,7 +131,7 @@ final class HeadersTest extends TestCase
     public function testHeaderSetThrowsInvalidArgumentExceptionIfHeaderValueIsEmpty(): void
     {
         // Arrange
-        $headers = Headers::fromData([
+        $headers = new Headers([
             'Host' => 'en.wikipedia.org:8080',
             'Origin' => 'http://www.example-social-network.com',
         ]);
@@ -146,7 +146,7 @@ final class HeadersTest extends TestCase
     public function testHeaderSetThrowsInvalidArgumentExceptionIfHeaderValueContainsInvalidCharacters(): void
     {
         // Arrange
-        $headers = Headers::fromData([
+        $headers = new Headers([
             'Host' => 'en.wikipedia.org:8080',
             'Origin' => 'http://www.example-social-network.com',
         ]);

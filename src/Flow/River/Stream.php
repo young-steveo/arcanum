@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Arcanum\Flow\River;
 
 use Psr\Http\Message\StreamInterface;
+use Arcanum\Gather\Registry;
 
 /**
  * @phpstan-type MetaDataKey 'timed_out'|'blocked'|'eof'|'unread_bytes'|'stream_type'|'wrapper_type'|'wrapper_data'|'mode'|'seekable'|'uri'|'crypto'
@@ -31,11 +32,7 @@ class Stream implements Copyable, \Stringable
 {
     private const READABLE_MODES = '/r|a\+|ab\+|w\+|wb\+|x\+|xb\+|c\+|cb\+/';
     private const WRITABLE_MODES = '/a|w|r\+|rb\+|rw|x|c/';
-
-    protected bool $seekable;
-    protected bool $readable;
-    protected bool $writable;
-    protected string $uri;
+    protected Registry $properties;
 
     /**
      * Construct a Stream.
@@ -50,10 +47,17 @@ class Stream implements Copyable, \Stringable
 
         $meta = $this->getMetadata();
         if (is_array($meta)) {
-            $this->seekable = $meta['seekable'];
-            $this->readable = (bool) preg_match(self::READABLE_MODES, $meta['mode']);
-            $this->writable = (bool) preg_match(self::WRITABLE_MODES, $meta['mode']);
-            $this->uri = $meta['uri'];
+            $this->properties = new Registry([
+                'seekable' => $meta['seekable'],
+                'readable' => (bool) preg_match(self::READABLE_MODES, $meta['mode']),
+                'writable' => (bool) preg_match(self::WRITABLE_MODES, $meta['mode'])
+            ]);
+        } else {
+            $this->properties = new Registry([
+                'seekable' => false,
+                'readable' => false,
+                'writable' => false
+            ]);
         }
     }
 
@@ -71,7 +75,7 @@ class Stream implements Copyable, \Stringable
     public function __toString(): string
     {
         try {
-            if ($this->seekable) {
+            if ($this->isSeekable()) {
                 $this->rewind();
             }
             return $this->getContents();
@@ -85,7 +89,7 @@ class Stream implements Copyable, \Stringable
      */
     public function isReadable(): bool
     {
-        return $this->readable;
+        return $this->properties->asBool('readable');
     }
 
     /**
@@ -93,7 +97,7 @@ class Stream implements Copyable, \Stringable
      */
     public function isWritable(): bool
     {
-        return $this->writable;
+        return $this->properties->asBool('writable');
     }
 
     /**
@@ -101,7 +105,7 @@ class Stream implements Copyable, \Stringable
      */
     public function isSeekable(): bool
     {
-        return $this->seekable;
+        return $this->properties->asBool('seekable');
     }
 
     /**
@@ -109,9 +113,7 @@ class Stream implements Copyable, \Stringable
      */
     public function eof(): bool
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Stream is detached');
-        }
+        $this->guardDetachedSource();
 
         return $this->source->feof();
     }
@@ -121,9 +123,7 @@ class Stream implements Copyable, \Stringable
      */
     public function tell(): int
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Stream is detached');
-        }
+        $this->guardDetachedSource();
 
         $position = $this->source->ftell();
         if ($position === false) {
@@ -143,11 +143,9 @@ class Stream implements Copyable, \Stringable
 
     public function seek(int $offset, int $whence = SEEK_SET): void
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Stream is detached');
-        }
+        $this->guardDetachedSource();
 
-        if (!$this->seekable) {
+        if (!$this->isSeekable()) {
             throw new UnseekableStream('Cannot seek a non-seekable stream');
         }
 
@@ -191,10 +189,11 @@ class Stream implements Copyable, \Stringable
         $source = $this->source;
         unset($this->source);
         $this->size = 0;
-        $this->seekable = false;
-        $this->readable = false;
-        $this->writable = false;
-        $this->uri = '';
+        $this->properties = new Registry([
+            'seekable' => false,
+            'readable' => false,
+            'writable' => false
+        ]);
 
         return $source->export();
     }
@@ -210,10 +209,7 @@ class Stream implements Copyable, \Stringable
      */
     public function getMetadata(string|null $key = null): mixed
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Cannot get metadata from a detached resource');
-        }
-
+        $this->guardDetachedSource();
         $meta = $this->source->streamGetMetaData();
         if (!$key) {
             return $meta;
@@ -224,13 +220,8 @@ class Stream implements Copyable, \Stringable
 
     public function getContents(): string
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Cannot get contents from a detached resource');
-        }
+        $this->guardReadable();
 
-        if (!$this->readable) {
-            throw new UnreadableStream('Cannot get contents from an unreadable resource');
-        }
         try {
             $contents = $this->source->streamGetContents();
             if ($contents === false) {
@@ -244,17 +235,13 @@ class Stream implements Copyable, \Stringable
 
     public function getSize(): ?int
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Cannot get the size of a detached stream');
-        }
+        $this->guardDetachedSource();
 
         if ($this->size) {
             return $this->size;
         }
 
-        if ($this->uri) {
-            $this->source->clearstatcache(true, $this->uri);
-        }
+        $this->clearCache();
 
         $stats = $this->source->fstat();
         if ($stats && $stats['size'] !== false) {
@@ -265,29 +252,27 @@ class Stream implements Copyable, \Stringable
         return null;
     }
 
+    protected function clearCache(): void
+    {
+        $meta = $this->getMetadata();
+        if (is_array($meta)) {
+            $this->source->clearstatcache(true, $meta['uri'] ?? '');
+        }
+    }
+
     /**
      * Read data from the stream.
      */
     public function read(int $length): string
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Stream is detached');
-        }
-
-        if (!$this->readable) {
-            throw new UnreadableStream('Stream is not readable');
-        }
+        $this->guardReadable();
 
         if ($length < 0) {
             throw new \InvalidArgumentException('Length to read must be greater than or equal to zero');
         }
 
-        if ($length === 0) {
-            return '';
-        }
-
         try {
-            $data = $this->source->fread($length);
+            $data = $length ? $this->source->fread($length) : '';
         } catch (\Throwable $e) {
             throw new UnreadableStream('Unable to read from stream', 0, $e);
         }
@@ -303,11 +288,9 @@ class Stream implements Copyable, \Stringable
      */
     public function write(string $string): int
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Cannot write to a detached stream');
-        }
+        $this->guardDetachedSource();
 
-        if (!$this->writable) {
+        if (!$this->isWritable()) {
             throw new UnwritableStream('Cannot write to a non-writable stream');
         }
 
@@ -323,6 +306,22 @@ class Stream implements Copyable, \Stringable
         }
 
         return $result;
+    }
+
+    protected function guardDetachedSource(): void
+    {
+        if (!isset($this->source)) {
+            throw new DetachedSource('Cannot operate on a detached stream');
+        }
+    }
+
+    protected function guardReadable(): void
+    {
+        $this->guardDetachedSource();
+
+        if (!$this->isReadable()) {
+            throw new UnreadableStream('Cannot operate on a non-readable stream');
+        }
     }
 
     public function copyTo(StreamInterface $output): void

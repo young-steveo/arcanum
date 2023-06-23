@@ -18,7 +18,7 @@ class IgnoreCaseRegistry extends Registry
      *
      * @param array<string, mixed> $data
      */
-    protected function __construct(array $data)
+    public function __construct(array $data = [])
     {
         parent::__construct($data);
 

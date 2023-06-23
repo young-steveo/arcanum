@@ -14,6 +14,7 @@ use Arcanum\Flow\River\StreamResource;
 use Arcanum\Flow\River\Bank;
 use Arcanum\Hyper\Files\Error;
 use Arcanum\Hyper\Files\InvalidFile;
+use Arcanum\Gather\Registry;
 
 #[CoversClass(UploadedFile::class)]
 #[UsesClass(Error::class)]
@@ -22,6 +23,7 @@ use Arcanum\Hyper\Files\InvalidFile;
 #[UsesClass(LazyResource::class)]
 #[UsesClass(InvalidFile::class)]
 #[UsesClass(Bank::class)]
+#[UsesClass(Registry::class)]
 final class IntegrationTest extends TestCase
 {
     public function testMoveTo(): void

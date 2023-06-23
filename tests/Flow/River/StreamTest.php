@@ -14,6 +14,7 @@ use Arcanum\Flow\River\DetachedSource;
 use Arcanum\Flow\River\UnreadableStream;
 use Arcanum\Flow\River\UnseekableStream;
 use Arcanum\Flow\River\UnwritableStream;
+use Arcanum\Gather\Registry;
 
 #[CoversClass(Stream::class)]
 #[UsesClass(InvalidSource::class)]
@@ -21,6 +22,7 @@ use Arcanum\Flow\River\UnwritableStream;
 #[UsesClass(UnreadableStream::class)]
 #[UsesClass(UnseekableStream::class)]
 #[UsesClass(UnwritableStream::class)]
+#[UsesClass(Registry::class)]
 final class StreamTest extends TestCase
 {
     public function testNewStream(): void
@@ -341,7 +343,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Stream is detached');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -451,7 +453,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Stream is detached');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -562,7 +564,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Stream is detached');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -930,7 +932,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Cannot get metadata from a detached resource');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1033,7 +1035,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Cannot get contents from a detached resource');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1086,7 +1088,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(UnreadableStream::class);
-        $this->expectExceptionMessage('Cannot get contents from an unreadable resource');
+        $this->expectExceptionMessage('Cannot operate on a non-readable stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1254,7 +1256,7 @@ final class StreamTest extends TestCase
     public function testToStringReturnsExceptionMessageIfGetContentsFails(): void
     {
         // Arrange
-        $expected = 'Unreadable stream: Cannot get contents from an unreadable resource';
+        $expected = 'Unreadable stream: Cannot operate on a non-readable stream';
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1331,7 +1333,7 @@ final class StreamTest extends TestCase
             ->method('isResource')
             ->willReturn(true);
 
-        $resource->expects($this->once())
+        $resource->expects($this->exactly(2))
             ->method('streamGetMetaData')
             ->willReturn([
                 'timed_out' => false,
@@ -1406,7 +1408,7 @@ final class StreamTest extends TestCase
             ->method('isResource')
             ->willReturn(true);
 
-        $resource->expects($this->once())
+        $resource->expects($this->exactly(2))
             ->method('streamGetMetaData')
             ->willReturn([
                 'timed_out' => false,
@@ -1463,7 +1465,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Cannot get the size of a detached stream');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1791,7 +1793,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(UnreadableStream::class);
-        $this->expectExceptionMessage('Stream is not readable');
+        $this->expectExceptionMessage('Cannot operate on a non-readable stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1844,7 +1846,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Stream is detached');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -2123,7 +2125,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Cannot write to a detached stream');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         $data = 'Hello World!';
 

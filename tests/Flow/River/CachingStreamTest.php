@@ -10,15 +10,12 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use Arcanum\Flow\River\CachingStream;
 use Arcanum\Flow\River\Stream;
 use Arcanum\Flow\River\StreamResource;
-use Arcanum\Flow\River\InvalidSource;
-use Arcanum\Flow\River\DetachedSource;
-use Arcanum\Flow\River\UnreadableStream;
-use Arcanum\Flow\River\UnseekableStream;
-use Arcanum\Flow\River\UnwritableStream;
+use Arcanum\Gather\Registry;
 
 #[CoversClass(CachingStream::class)]
 #[UsesClass(Stream::class)]
 #[UsesClass(StreamResource::class)]
+#[UsesClass(Registry::class)]
 final class CachingStreamTest extends TestCase
 {
     public function testFromStream(): void
