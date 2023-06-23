@@ -27,7 +27,7 @@ use Psr\Http\Message\StreamInterface;
  *   }
  * }
  */
-class Stream implements StreamInterface, \Stringable, Copyable
+class Stream implements Copyable, \Stringable
 {
     private const READABLE_MODES = '/r|a\+|ab\+|w\+|wb\+|x\+|xb\+|c\+|cb\+/';
     private const WRITABLE_MODES = '/a|w|r\+|rb\+|rw|x|c/';

@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use Arcanum\Flow\River\LazyResource;
 use Arcanum\Flow\River\Stream;
 use Arcanum\Flow\River\StreamResource;
+use Arcanum\Flow\River\Bank;
 use Arcanum\Hyper\Files\Error;
 use Arcanum\Hyper\Files\InvalidFile;
 
@@ -20,6 +21,7 @@ use Arcanum\Hyper\Files\InvalidFile;
 #[UsesClass(StreamResource::class)]
 #[UsesClass(LazyResource::class)]
 #[UsesClass(InvalidFile::class)]
+#[UsesClass(Bank::class)]
 final class IntegrationTest extends TestCase
 {
     public function testMoveTo(): void

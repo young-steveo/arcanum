@@ -6,7 +6,7 @@ namespace Arcanum\Flow\River;
 
 use Psr\Http\Message\StreamInterface;
 
-interface Copyable
+interface Copyable extends StreamInterface
 {
     /**
      * Copy the stream to an output stream.

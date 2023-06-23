@@ -8,7 +8,7 @@ use Arcanum\Flow\River\LazyResource;
 use Arcanum\Flow\River\ResourceWrapper;
 use Arcanum\Flow\River\Stream;
 use Arcanum\Flow\River\StreamResource;
-use Arcanum\Flow\River\Copyable;
+use Arcanum\Flow\River\Bank;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 
@@ -151,23 +151,8 @@ class UploadedFile implements UploadedFileInterface
     {
         $stream = $this->getStream();
         $target = new Stream(LazyResource::for($targetPath, 'w'));
-        if ($stream instanceof Copyable) {
-            $meta = $stream->getMetadata();
-            $stream->copyTo($target);
-            if (
-                is_array($meta) &&
-                isset($meta['uri']) &&
-                $meta['uri'] !== $targetPath &&
-                file_exists($meta['uri'])
-            ) {
-                unlink($meta['uri']);
-            }
-            return true;
-        }
-        // manually copy stream
-        while (!$stream->eof()) {
-            $target->write($stream->read(4096));
-        }
+        Bank::copyTo($stream, $target);
+        Bank::deleteIfMoved($stream, $targetPath);
         return $stream->eof();
     }
 

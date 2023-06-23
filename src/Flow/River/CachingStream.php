@@ -6,7 +6,7 @@ namespace Arcanum\Flow\River;
 
 use Psr\Http\Message\StreamInterface;
 
-class CachingStream implements StreamInterface, \Stringable, Copyable
+class CachingStream implements Copyable, \Stringable
 {
     /**
      * Number of bytes to skip reading due to a previous write.
