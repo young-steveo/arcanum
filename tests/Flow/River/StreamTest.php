@@ -2173,4 +2173,126 @@ final class StreamTest extends TestCase
         $stream->detach();
         $stream->write($data);
     }
+
+    public function testCopyTo(): void
+    {
+        // Arrange
+        /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
+        $resource = $this->getMockBuilder(StreamResource::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['isResource', 'streamGetMetaData', 'fclose', 'export', 'feof', 'fread'])
+            ->getMock();
+
+        $resource->expects($this->exactly(2))
+            ->method('isResource')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('streamGetMetaData')
+            ->willReturn([
+                'timed_out' => false,
+                'blocked' => true,
+                'eof' => false,
+                'wrapper_type' => 'PHP',
+                'stream_type' => 'MEMORY',
+                'mode' => 'w+b',
+                'unread_bytes' => 0,
+                'seekable' => true,
+                'uri' => 'php://memory',
+            ]);
+
+        $resource->expects($this->exactly(2))
+            ->method('feof')
+            ->willReturnOnConsecutiveCalls(false, true);
+
+        $resource->expects($this->once())
+            ->method('fread')
+            ->with(8192)
+            ->willReturn('Hello World!');
+
+        $resource->expects($this->once())
+            ->method('fclose')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('export')
+            ->willReturn(fopen('php://memory', 'r+'));
+
+        /** @var Stream&\PHPUnit\Framework\MockObject\MockObject */
+        $target = $this->getMockBuilder(Stream::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['write'])
+            ->getMock();
+
+        $target->expects($this->once())
+            ->method('write')
+            ->with('Hello World!')
+            ->willReturn(12);
+
+        $stream = new Stream($resource);
+
+        // Act
+        $stream->copyTo($target);
+    }
+
+    public function testCopyToBreaksSilentlyIfTargetFailsWrite(): void
+    {
+        // Arrange
+        /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
+        $resource = $this->getMockBuilder(StreamResource::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['isResource', 'streamGetMetaData', 'fclose', 'export', 'feof', 'fread'])
+            ->getMock();
+
+        $resource->expects($this->exactly(2))
+            ->method('isResource')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('streamGetMetaData')
+            ->willReturn([
+                'timed_out' => false,
+                'blocked' => true,
+                'eof' => false,
+                'wrapper_type' => 'PHP',
+                'stream_type' => 'MEMORY',
+                'mode' => 'w+b',
+                'unread_bytes' => 0,
+                'seekable' => true,
+                'uri' => 'php://memory',
+            ]);
+
+        $resource->expects($this->once())
+            ->method('feof')
+            ->willReturn(false);
+
+        $resource->expects($this->once())
+            ->method('fread')
+            ->with(8192)
+            ->willReturn('Hello World!');
+
+        $resource->expects($this->once())
+            ->method('fclose')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('export')
+            ->willReturn(fopen('php://memory', 'r+'));
+
+        /** @var Stream&\PHPUnit\Framework\MockObject\MockObject */
+        $target = $this->getMockBuilder(Stream::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['write'])
+            ->getMock();
+
+        $target->expects($this->once())
+            ->method('write')
+            ->with('Hello World!')
+            ->willReturn(0);
+
+        $stream = new Stream($resource);
+
+        // Act
+        $stream->copyTo($target);
+    }
 }

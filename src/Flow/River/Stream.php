@@ -27,7 +27,7 @@ use Psr\Http\Message\StreamInterface;
  *   }
  * }
  */
-class Stream implements StreamInterface, \Stringable
+class Stream implements StreamInterface, \Stringable, Copyable
 {
     private const READABLE_MODES = '/r|a\+|ab\+|w\+|wb\+|x\+|xb\+|c\+|cb\+/';
     private const WRITABLE_MODES = '/a|w|r\+|rb\+|rw|x|c/';
@@ -41,7 +41,7 @@ class Stream implements StreamInterface, \Stringable
      * Construct a Stream.
      */
     public function __construct(
-        protected StreamResource $source,
+        protected ResourceWrapper $source,
         protected int|null $size = null,
     ) {
         if (!$this->source->isResource()) {
@@ -323,5 +323,15 @@ class Stream implements StreamInterface, \Stringable
         }
 
         return $result;
+    }
+
+    public function copyTo(StreamInterface $output): void
+    {
+        $bytes = 8192;
+        while (!$this->eof()) {
+            if (!$output->write($this->read($bytes))) {
+                break;
+            }
+        }
     }
 }

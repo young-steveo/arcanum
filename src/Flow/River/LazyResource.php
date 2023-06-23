@@ -4,28 +4,44 @@ declare(strict_types=1);
 
 namespace Arcanum\Flow\River;
 
-/** @phpstan-consistent-constructor */
-class StreamResource implements ResourceWrapper
+final class LazyResource implements ResourceWrapper
 {
-    /**
-     * @param resource $resource
-     */
-    private function __construct(private $resource)
+    private ResourceWrapper|null $resource;
+
+    private function __construct(
+        private \Closure $resourceFactory,
+    ) {
+    }
+
+    public static function for(string $filename, string $mode): ResourceWrapper
     {
+        return static::from(fn() => fopen($filename, $mode));
+    }
+
+    /**
+     * @param callable(): (resource|false) $resourceFactory
+     */
+    public static function from(callable $resourceFactory): ResourceWrapper
+    {
+        if ($resourceFactory instanceof \Closure) {
+            return new static($resourceFactory);
+        }
+        return new static($resourceFactory(...));
     }
 
     /**
      * Wrap a resource.
-     *
-     * @param resource $resource
      */
-    public static function wrap($resource): static
+    private function resource(): ResourceWrapper
     {
-        $wrapper = new static($resource);
-        if (!$wrapper->isResource()) {
-            throw new InvalidSource('Stream source must be a live resource');
+        if (!isset($this->resource)) {
+            $pointer = ($this->resourceFactory)();
+            if (!is_resource($pointer)) {
+                throw new InvalidSource('Stream source must be a live resource');
+            }
+            $this->resource = StreamResource::wrap($pointer);
         }
-        return $wrapper;
+        return $this->resource;
     }
 
     /**
@@ -35,32 +51,32 @@ class StreamResource implements ResourceWrapper
      */
     public function export()
     {
-        return $this->resource;
+        return $this->resource()->export();
     }
 
     public function isResource(): bool
     {
-        return is_resource($this->resource);
+        return $this->resource()->isResource();
     }
 
     public function feof(): bool
     {
-        return feof($this->resource);
+        return $this->resource()->feof();
     }
 
     public function ftell(): int|false
     {
-        return ftell($this->resource);
+        return $this->resource()->ftell();
     }
 
     public function fseek(int $offset, int $whence = SEEK_SET): int
     {
-        return fseek($this->resource, $offset, $whence);
+        return $this->resource()->fseek($offset, $whence);
     }
 
     public function fclose(): bool
     {
-        return fclose($this->resource);
+        return $this->resource()->fclose();
     }
 
     /**
@@ -85,12 +101,12 @@ class StreamResource implements ResourceWrapper
      */
     public function streamGetMetaData(): array
     {
-        return stream_get_meta_data($this->resource);
+        return $this->resource()->streamGetMetaData();
     }
 
     public function clearstatcache(bool $clearRealPathCache = false, string $filename = ''): void
     {
-        clearstatcache($clearRealPathCache, $filename);
+        $this->resource()->clearstatcache($clearRealPathCache, $filename);
     }
 
     /**
@@ -112,7 +128,7 @@ class StreamResource implements ResourceWrapper
      */
     public function fstat(): array|false
     {
-        return fstat($this->resource);
+        return $this->resource()->fstat();
     }
 
     /**
@@ -120,16 +136,16 @@ class StreamResource implements ResourceWrapper
      */
     public function fread(int $length): string|false
     {
-        return fread($this->resource, $length);
+        return $this->resource()->fread($length);
     }
 
     public function fwrite(string $data): int|false
     {
-        return fwrite($this->resource, $data);
+        return $this->resource()->fwrite($data);
     }
 
     public function streamGetContents(): string|false
     {
-        return stream_get_contents($this->resource);
+        return $this->resource()->streamGetContents();
     }
 }

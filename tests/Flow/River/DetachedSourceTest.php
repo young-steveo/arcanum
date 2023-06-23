@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Flow\River;
+namespace Arcanum\Test\Flow\River;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
