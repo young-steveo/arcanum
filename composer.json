@@ -37,10 +37,11 @@
         "post-install-cmd": [
             "bash contrib/setup"
         ],
-        "check": [ "@cs-check", "@phpstan", "@phpunit" ],
+        "check": [ "@cs-fix", "@cs-check", "@phpstan", "@phpunit", "@metrics" ],
         "cs-check": "bash contrib/cs-check",
         "cs-fix": "phpcbf --colors --standard=./contrib/phpcs-ruleset.xml --ignore=.coverage,.phpunit.cache",
         "phpstan": "bash contrib/phpstan",
-        "phpunit": "phpunit --colors=always --coverage-html=tests/.coverage --coverage-clover=tests/.coverage/clover.xml --log-junit=tests/.coverage/junit.xml --configuration=contrib/phpunit.xml --display-warnings"
+        "phpunit": "phpunit --colors=always --coverage-html=tests/.coverage --coverage-clover=tests/.coverage/clover.xml --log-junit=tests/.coverage/junit.xml --configuration=contrib/phpunit.xml --display-warnings",
+        "metrics": "phpmetrics --report-html=.metrics --junit=tests/.coverage/junit.xml --git=/usr/bin/git ./src"
     }
 }

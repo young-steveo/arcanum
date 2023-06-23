@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Arcanum\Flow\Continuum;
 
-class MiddlewareCollection implements Collection
+class ContinuationCollection implements Collection
 {
     /**
      * Create a new collection of continuations.

@@ -18,12 +18,12 @@ use Arcanum\Test\Flow\Continuum\Fixture\BasicProgression;
 #[UsesClass(\Arcanum\Codex\Resolver::class)]
 #[UsesClass(\Arcanum\Flow\Pipeline\Pipeline::class)]
 #[UsesClass(\Arcanum\Flow\Pipeline\StandardProcessor::class)]
-#[UsesClass(\Arcanum\Flow\Pipeline\DecoratorSystem::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\PipelayerSystem::class)]
 #[UsesClass(\Arcanum\Cabinet\SimpleProvider::class)]
 #[UsesClass(\Arcanum\Cabinet\PrototypeProvider::class)]
 #[UsesClass(\Arcanum\Flow\Continuum\Continuum::class)]
 #[UsesClass(\Arcanum\Flow\Continuum\StandardAdvancer::class)]
-#[UsesClass(\Arcanum\Flow\Continuum\MiddlewareCollection::class)]
+#[UsesClass(\Arcanum\Flow\Continuum\ContinuationCollection::class)]
 final class IntegrationTest extends TestCase
 {
     public function testDecorators(): void

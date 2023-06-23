@@ -8,9 +8,9 @@ use Psr\Container\ContainerInterface;
 use Arcanum\Codex\ClassResolver;
 use Arcanum\Codex\Resolver;
 use Arcanum\Flow\Pipeline\System;
-use Arcanum\Flow\Pipeline\DecoratorSystem;
+use Arcanum\Flow\Pipeline\PipelayerSystem;
 use Arcanum\Flow\Continuum\Collection;
-use Arcanum\Flow\Continuum\MiddlewareCollection;
+use Arcanum\Flow\Continuum\ContinuationCollection;
 use Arcanum\Flow\Continuum\Progression;
 
 /**
@@ -47,8 +47,8 @@ class Container implements \ArrayAccess, ContainerInterface
         System $decorators = null
     ) {
         $this->resolver = $resolver ?? Resolver::forContainer($this);
-        $this->middleware = $middleware ?? new MiddlewareCollection();
-        $this->decorators = $decorators ?? new DecoratorSystem();
+        $this->middleware = $middleware ?? new ContinuationCollection();
+        $this->decorators = $decorators ?? new PipelayerSystem();
     }
 
     /**

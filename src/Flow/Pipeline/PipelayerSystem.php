@@ -6,7 +6,7 @@ namespace Arcanum\Flow\Pipeline;
 
 use Arcanum\Flow\Stage;
 
-class DecoratorSystem implements System
+class PipelayerSystem implements System
 {
     /**
      * Create a new system of pipelines.
