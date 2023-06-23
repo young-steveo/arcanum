@@ -81,14 +81,23 @@ class Resolver implements ClassResolver
         }
 
         // Otherwise, we need to resolve the parameters as dependencies.
+        $dependencies = $this->resolveParameters($parameters);
+
+        /** @var T */
+        $instance = $image->newInstanceArgs($dependencies);
+        return $this->finalize($instance);
+    }
+
+    /**
+     * @param \ReflectionParameter[] $parameters
+     * @return mixed[]
+     */
+    protected function resolveParameters(array $parameters): array
+    {
         $dependencies = [];
         foreach ($parameters as $parameter) {
             $dependencyName = $this->getClassName($parameter);
             if ($dependencyName === null) {
-                $type = $parameter->getType();
-                if ($type !== null && $type instanceof \ReflectionUnionType) {
-                    throw new Error\UnresolvableUnionType(message: $className);
-                }
                 $dependency = $this->resolvePrimitive($parameter);
             } else {
                 $dependency = $this->resolveClass($parameter, $dependencyName);
@@ -103,9 +112,7 @@ class Resolver implements ClassResolver
             }
         }
 
-        /** @var T */
-        $instance = $image->newInstanceArgs($dependencies);
-        return $this->finalize($instance);
+        return $dependencies;
     }
 
     /**
@@ -221,6 +228,11 @@ class Resolver implements ClassResolver
 
         if ($parameter->isVariadic()) {
             return [];
+        }
+
+        $type = $parameter->getType();
+        if ($type !== null && $type instanceof \ReflectionUnionType) {
+            throw new Error\UnresolvableUnionType(implode(",", $type->getTypes()));
         }
 
         throw new Error\UnresolvablePrimitive(message: $parameter->getName());
