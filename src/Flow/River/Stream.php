@@ -46,16 +46,12 @@ class Stream implements Copyable, \Stringable
             throw new InvalidSource('Stream source must be a live resource');
         }
 
-        $meta = $this->getMetadata();
-        if (is_array($meta)) {
-            $this->setProperties(
-                seekable: $meta['seekable'],
-                readable: (bool) preg_match('/r|a\+|ab\+|w\+|wb\+|x\+|xb\+|c\+|cb\+/', $meta['mode']),
-                writable: (bool) preg_match('/a|w|r\+|rb\+|rw|x|c/', $meta['mode'])
-            );
-        } else {
-            $this->setProperties(seekable: false, readable: false, writable: false);
-        }
+        $meta = $this->source->streamGetMetaData();
+        $this->setProperties(
+            seekable: $meta['seekable'],
+            readable: (bool) preg_match('/r|a\+|ab\+|w\+|wb\+|x\+|xb\+|c\+|cb\+/', $meta['mode']),
+            writable: (bool) preg_match('/a|w|r\+|rb\+|rw|x|c/', $meta['mode'])
+        );
     }
 
     /**
@@ -249,7 +245,8 @@ class Stream implements Copyable, \Stringable
             return $this->size;
         }
 
-        $this->clearCache();
+        $meta = $this->source->streamGetMetaData();
+        $this->source->clearstatcache(true, $meta['uri']);
 
         $stats = $this->source->fstat();
         if ($stats && $stats['size'] !== false) {
@@ -258,17 +255,6 @@ class Stream implements Copyable, \Stringable
         }
 
         return null;
-    }
-
-    /**
-     * Clear the stat cache.
-     */
-    protected function clearCache(): void
-    {
-        $meta = $this->getMetadata();
-        if (is_array($meta)) {
-            $this->source->clearstatcache(true, $meta['uri'] ?? '');
-        }
     }
 
     /**
