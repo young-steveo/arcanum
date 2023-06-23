@@ -182,7 +182,7 @@ class Container implements \ArrayAccess, ContainerInterface
     public function offsetSet($offset, $value): void
     {
         if (!is_string($offset)) {
-            throw new Error\InvalidKey("Invalid key type: " . gettype($offset));
+            throw new InvalidKey("Invalid key type: " . gettype($offset));
         }
         $this->providers[$offset] = SimpleProvider::fromFactory(fn() => $value);
     }
@@ -213,12 +213,12 @@ class Container implements \ArrayAccess, ContainerInterface
      * This is where all the magic happens.
      *
      * @param class-string $offset
-     * @throws Error\InvalidKey
+     * @throws InvalidKey
      */
     public function offsetGet($offset): mixed
     {
         if (!is_string($offset)) {
-            throw new Error\InvalidKey("Invalid key type: " . gettype($offset));
+            throw new InvalidKey("Invalid key type: " . gettype($offset));
         }
 
         // Provide the instance.

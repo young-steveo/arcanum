@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use Arcanum\Test\Fixture;
-use Arcanum\Cabinet\Error;
+use Arcanum\Cabinet\InvalidKey;
 use Arcanum\Cabinet\Container;
 use Arcanum\Codex\Error\UnresolvableClass;
 use Arcanum\Flow\Continuum\Collection;
@@ -18,7 +18,7 @@ use Arcanum\Flow\Pipeline\System;
 #[UsesClass(\Arcanum\Cabinet\SimpleProvider::class)]
 #[UsesClass(\Arcanum\Cabinet\PrototypeProvider::class)]
 #[UsesClass(UnresolvableClass::class)]
-#[UsesClass(Error\InvalidKey::class)]
+#[UsesClass(InvalidKey::class)]
 final class ContainerTest extends TestCase
 {
     public function testContainerImplementsArrayAccess(): void
@@ -206,7 +206,7 @@ final class ContainerTest extends TestCase
         $container = new Container($resolver, $collection, $system);
 
         // Assert
-        $this->expectException(Error\InvalidKey::class);
+        $this->expectException(InvalidKey::class);
 
         // Act
         $container[0] = 'bar'; /** @phpstan-ignore-line */
@@ -252,7 +252,7 @@ final class ContainerTest extends TestCase
         $container = new Container($resolver, $collection, $system);
 
         // Assert
-        $this->expectException(Error\InvalidKey::class);
+        $this->expectException(InvalidKey::class);
 
         // Act
         $container[0]; /** @phpstan-ignore-line */

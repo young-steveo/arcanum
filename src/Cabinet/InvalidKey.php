@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Cabinet\Error;
+namespace Arcanum\Cabinet;
 
 use Psr\Container\ContainerExceptionInterface;
 

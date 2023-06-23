@@ -7,13 +7,13 @@ namespace Arcanum\Test\Cabinet\Error;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(\Arcanum\Cabinet\Error\InvalidKey::class)]
+#[CoversClass(\Arcanum\Cabinet\InvalidKey::class)]
 final class InvalidKeyTest extends TestCase
 {
     public function testInvalidKey(): void
     {
         // Arrange
-        $invalidKey = new \Arcanum\Cabinet\Error\InvalidKey('foo');
+        $invalidKey = new \Arcanum\Cabinet\InvalidKey('foo');
 
         // Act
         $message = $invalidKey->getMessage();
