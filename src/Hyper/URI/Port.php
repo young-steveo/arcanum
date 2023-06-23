@@ -6,6 +6,9 @@ namespace Arcanum\Hyper\URI;
 
 final class Port implements \Stringable
 {
+    /**
+     * Default ports for schemes.
+     */
     public const DEFAULT_PORTS = [
         'http' => 80,
         'https' => 443,
@@ -20,6 +23,9 @@ final class Port implements \Stringable
         'ldap' => 389,
     ];
 
+    /**
+     * Port.
+     */
     public function __construct(private int|string|null $value)
     {
         if (is_string($value)) {
@@ -30,6 +36,9 @@ final class Port implements \Stringable
         }
     }
 
+    /**
+     * Port as a string.
+     */
     public function __toString(): string
     {
         return $this->value === null ? '' : (string) $this->value;

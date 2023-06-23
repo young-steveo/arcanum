@@ -8,6 +8,9 @@ use Psr\Http\Message\StreamInterface;
 
 final class Bank
 {
+    /**
+     * Copy a stream to another stream.
+     */
     public static function copyTo(StreamInterface $source, StreamInterface $target): void
     {
         if ($source instanceof Copyable) {
@@ -19,6 +22,9 @@ final class Bank
         }
     }
 
+    /**
+     * Delete a stream if it was moved.
+     */
     public static function deleteIfMoved(StreamInterface $stream, string $targetPath): void
     {
         $meta = $stream->getMetadata();
