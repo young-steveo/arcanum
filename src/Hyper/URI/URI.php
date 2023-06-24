@@ -9,10 +9,29 @@ use Psr\Http\Message\UriInterface;
 
 class URI implements UriInterface
 {
+    /**
+     * @var Scheme The scheme of the URI.
+     */
     protected Scheme $scheme;
+
+    /**
+     * @var Authority The authority of the URI.
+     */
     protected Authority $authority;
+
+    /**
+     * @var Path The path of the URI.
+     */
     protected Path $path;
+
+    /**
+     * @var Query The query of the URI.
+     */
     protected Query $query;
+
+    /**
+     * @var Fragment The fragment of the URI.
+     */
     protected Fragment $fragment;
 
     /**
@@ -20,6 +39,9 @@ class URI implements UriInterface
      */
     protected string|null $composed = null;
 
+    /**
+     * Create a new URI.
+     */
     public function __construct(protected string $uri = '')
     {
         $parsed = Spec::parse($uri);
@@ -38,6 +60,9 @@ class URI implements UriInterface
         $this->finalize();
     }
 
+    /**
+     * Get the URI as a string.
+     */
     public function __toString(): string
     {
         if ($this->composed !== null) {
@@ -69,48 +94,75 @@ class URI implements UriInterface
         return $this->composed;
     }
 
+    /**
+     * Get the Scheme as a string.
+     */
     public function getScheme(): string
     {
         return (string)$this->scheme;
     }
 
+    /**
+     * Get the Authority as a string.
+     */
     public function getAuthority(): string
     {
         return (string)$this->authority;
     }
 
+    /**
+     * Get the User Info as a string.
+     */
     public function getUserInfo(): string
     {
         return $this->authority->getUserInfo();
     }
 
+    /**
+     * Get the Host as a string.
+     */
     public function getHost(): string
     {
         return (string)$this->authority->getHost();
     }
 
+    /**
+     * Get the Port as an integer, or null if not set.
+     */
     public function getPort(): int|null
     {
         $port = $this->authority->getPort();
         return $port === null ? null : (int)(string)$port;
     }
 
+    /**
+     * Get the Path as a string.
+     */
     public function getPath(): string
     {
         return (string)$this->path;
     }
 
+    /**
+     * Get the Query as a string.
+     */
     public function getQuery(): string
     {
         return (string)$this->query;
     }
 
+    /**
+     * Get the Fragment as a string.
+     */
     public function getFragment(): string
     {
         return (string)$this->fragment;
     }
 
-    public function withScheme($scheme): UriInterface
+    /**
+     * Create a copy of the URI with the given scheme.
+     */
+    public function withScheme(string $scheme): UriInterface
     {
         $clone = clone $this;
         $clone->scheme = new Scheme($scheme);
@@ -119,7 +171,10 @@ class URI implements UriInterface
         return $clone;
     }
 
-    public function withUserInfo($user, $password = null): UriInterface
+    /**
+     * Create a copy of the URI with the given user info.
+     */
+    public function withUserInfo(string $user, string|null $password = null): UriInterface
     {
         $clone = clone $this;
         $clone->authority = $this->authority->withUserInfo(
@@ -131,7 +186,10 @@ class URI implements UriInterface
         return $clone;
     }
 
-    public function withHost($host): UriInterface
+    /**
+     * Create a copy of the URI with the given host.
+     */
+    public function withHost(string $host): UriInterface
     {
         $clone = clone $this;
         $clone->authority = $this->authority->withHost(new Host($host));
@@ -140,7 +198,10 @@ class URI implements UriInterface
         return $clone;
     }
 
-    public function withPort($port): UriInterface
+    /**
+     * Create a copy of the URI with the given port, or null to remove the port.
+     */
+    public function withPort(int|null $port): UriInterface
     {
         $clone = clone $this;
         $clone->authority = $this->authority->withPort(new Port($port));
@@ -149,7 +210,10 @@ class URI implements UriInterface
         return $clone;
     }
 
-    public function withPath($path): UriInterface
+    /**
+     * Create a copy of the URI with the given path.
+     */
+    public function withPath(string $path): UriInterface
     {
         $clone = clone $this;
         $clone->path = new Path($path);
@@ -158,7 +222,10 @@ class URI implements UriInterface
         return $clone;
     }
 
-    public function withQuery($query): UriInterface
+    /**
+     * Create a copy of the URI with the given query.
+     */
+    public function withQuery(string $query): UriInterface
     {
         $clone = clone $this;
         $clone->query = new Query($query);
@@ -167,7 +234,10 @@ class URI implements UriInterface
         return $clone;
     }
 
-    public function withFragment($fragment): UriInterface
+    /**
+     * Create a copy of the URI with the given fragment.
+     */
+    public function withFragment(string $fragment): UriInterface
     {
         $clone = clone $this;
         $clone->fragment = new Fragment($fragment);
@@ -176,6 +246,16 @@ class URI implements UriInterface
         return $clone;
     }
 
+    /**
+     * Wrap up the URI after construction.
+     *
+     * This method is called after the URI is constructed, and is responsible
+     * for ensuring that the URI is valid. It also performs some normalization
+     * by removing the default port for the scheme, and adding a localhost host
+     * for web URIs without a defined host.
+     *
+     * @throws MalformedURI if the URI is invalid.
+     */
     protected function finalize(): void
     {
         if (Spec::hasDefaultPort($this)) {
