@@ -8,11 +8,13 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use Arcanum\Flow\River\CachingStream;
+use Arcanum\Flow\River\TemporaryStream;
 use Arcanum\Flow\River\Stream;
 use Arcanum\Flow\River\StreamResource;
 use Arcanum\Gather\Registry;
 
 #[CoversClass(CachingStream::class)]
+#[UsesClass(TemporaryStream::class)]
 #[UsesClass(Stream::class)]
 #[UsesClass(StreamResource::class)]
 #[UsesClass(Registry::class)]

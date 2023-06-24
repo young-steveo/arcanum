@@ -13,36 +13,51 @@ class CachingStream implements Copyable, \Stringable
      */
     protected int $bytesToSkip = 0;
 
+    /**
+     * @var StreamInterface The stream to read from when caching.
+     */
     protected StreamInterface $remote;
+
+    /**
+     * @var StreamInterface The stream to write to when caching.
+     */
     protected StreamInterface $local;
 
+    /**
+     * CachingStream will initially read from the remote stream and write to
+     * the local stream.
+     *
+     * If the local stream is not provided, it will be created as a temporary
+     * stream.
+     *
+     */
     protected function __construct(
         StreamInterface $remote,
         StreamInterface $local = null,
     ) {
         $this->remote = $remote;
-        if ($local === null) {
-            $pointer = fopen('php://temp', 'w+');
-            // @codeCoverageIgnoreStart
-            if ($pointer === false) {
-                throw new \RuntimeException('Could not open temporary stream');
-            }
-            // @codeCoverageIgnoreEnd
-            $local = new Stream(StreamResource::wrap($pointer));
-        }
-        $this->local = $local;
+        $this->local = $local ?? TemporaryStream::getNew();
     }
 
+    /**
+     * Create a new CachingStream around a remote stream.
+     */
     public static function fromStream(StreamInterface $remote): StreamInterface
     {
         return new self($remote);
     }
 
+    /**
+     * Create a new CachingStream around a remote stream with a local cache.
+     */
     public static function fromStreamWithCache(StreamInterface $remote, StreamInterface $local): StreamInterface
     {
         return new self($remote, $local);
     }
 
+    /**
+     * Get the size of the stream if known.
+     */
     public function getSize(): ?int
     {
         $remoteSize = $this->remote->getSize();
@@ -60,11 +75,17 @@ class CachingStream implements Copyable, \Stringable
         return max($remoteSize, $localSize);
     }
 
+    /**
+     * Rewind the stream to the beginning.
+     */
     public function rewind(): void
     {
         $this->seek(0);
     }
 
+    /**
+     * Seek to a position in the stream.
+     */
     public function seek($offset, $whence = SEEK_SET): void
     {
         $byte = match ($whence) {
@@ -92,6 +113,9 @@ class CachingStream implements Copyable, \Stringable
         }
     }
 
+    /**
+     * Read data from the stream.
+     */
     public function read(int $length): string
     {
         // first read local stream
@@ -123,6 +147,11 @@ class CachingStream implements Copyable, \Stringable
         return $data;
     }
 
+    /**
+     * Write data to the stream.
+     *
+     * This will only write to the cache, not the remote stream.
+     */
     public function write(string $string): int
     {
         $overflow = strlen($string) + $this->tell() - $this->remote->tell();
@@ -133,49 +162,79 @@ class CachingStream implements Copyable, \Stringable
         return $this->local->write($string);
     }
 
+    /**
+     * Check if the stream is at the end.
+     */
     public function eof(): bool
     {
         return $this->local->eof() && $this->remote->eof();
     }
 
+    /**
+     * Close the stream and the cache.
+     */
     public function close(): void
     {
         $this->local->close();
         $this->remote->close();
     }
 
+    /**
+     * Detach the stream and the cache.
+     */
     public function detach()
     {
         $this->remote->detach();
         return $this->local->detach();
     }
 
+    /**
+     * Get the current position of the cache.
+     */
     public function tell(): int
     {
         return $this->local->tell();
     }
 
+    /**
+     * Get whether or not the stream is seekable.
+     */
     public function isSeekable(): bool
     {
         return $this->local->isSeekable();
     }
 
+    /**
+     * Get whether or not the stream is writable.
+     */
     public function isWritable(): bool
     {
         return $this->local->isWritable();
     }
 
+    /**
+     * Get whether or not the stream is readable.
+     */
     public function isReadable(): bool
     {
         return $this->local->isReadable();
     }
 
+    /**
+     * Get the stream contents as a string.
+     */
     public function getContents(): string
     {
         return $this->local->getContents();
     }
 
-    public function getMetadata($key = null)
+    /**
+     * Get stream metadata as an associative array or retrieve a specific key.
+     *
+     * @param string|null $key
+     * @return mixed
+     */
+    public function getMetadata($key = null): mixed
     {
         return $this->local->getMetadata($key);
     }
@@ -201,6 +260,9 @@ class CachingStream implements Copyable, \Stringable
         return $this->tell();
     }
 
+    /**
+     * Copy the contents of the stream to another stream.
+     */
     public function copyTo(StreamInterface $output): void
     {
         $bytes = 8192;
