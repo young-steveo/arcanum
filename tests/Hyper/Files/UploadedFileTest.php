@@ -186,7 +186,13 @@ final class UploadedFileTest extends TestCase
         ];
 
         // Act
-        $result = UploadedFile::fromSpec($files['avatar']);
+        $result = UploadedFile::fromSpec(
+            tmpName: $files['avatar']['tmp_name'],
+            size: $files['avatar']['size'],
+            error: $files['avatar']['error'],
+            clientFilename: $files['avatar']['name'],
+            clientMediaType: $files['avatar']['type'],
+        );
 
         // Assert
         $this->assertInstanceOf(UploadedFile::class, $result);
@@ -197,7 +203,7 @@ final class UploadedFileTest extends TestCase
         // Arrange
         $files = [
             'avatar' => [
-                'tmp_name' => 123,
+                'tmp_name' => null,
                 'name' => 'my-avatar.png',
                 'size' => 90996,
                 'type' => 'image/png',

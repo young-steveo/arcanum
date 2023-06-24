@@ -55,7 +55,13 @@ final class UploadedFiles
         foreach ($files as $key => $value) {
             $normalized[$key] = match (true) {
                 $value instanceof UploadedFileInterface => $value,
-                is_array($value) && isset($value['tmp_name']) => UploadedFile::fromSpec($value),
+                is_array($value) && isset($value['tmp_name']) => UploadedFile::fromSpec(
+                    tmpName: $value['tmp_name'],
+                    error: $value['error'] ?? null,
+                    size: $value['size'] ?? null,
+                    clientFilename: $value['name'] ?? null,
+                    clientMediaType: $value['type'] ?? null
+                ),
                 is_array($value) => static::normalize($value),
                 default => throw new \InvalidArgumentException('Invalid value in files specification'),
             };

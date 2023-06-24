@@ -14,11 +14,20 @@ use Psr\Http\Message\UploadedFileInterface;
 
 class UploadedFile implements UploadedFileInterface
 {
+    /**
+     * @var string|null The file path, if set.
+     */
     private string|null $file;
 
-    private bool $moved = false;
-
+    /**
+     * @var StreamInterface|null The stream representation of the uploaded file, if set.
+     */
     private StreamInterface|null $stream;
+
+    /**
+     * @var bool Whether the uploaded file has already been moved.
+     */
+    private bool $moved = false;
 
     /**
      * @param StreamInterface|string|resource|ResourceWrapper|null $file
@@ -37,29 +46,41 @@ class UploadedFile implements UploadedFileInterface
     }
 
     /**
-     * @param array{
-     *   tmp_name?: mixed,
-     *   error?: int|null,
-     *   size?: int|null,
-     *   name?: string|null,
-     *   type?: string|null,
-     * } $spec
+     * @param string|null|array<string|int,mixed> $tmpName
+     * @param int|null|array<string|int,mixed> $error
+     * @param int|null|array<string|int,mixed> $size
+     * @param string|null|array<string|int,mixed> $clientFilename
+     * @param string|null|array<string|int,mixed> $clientMediaType
      * @return UploadedFileInterface|array<string, mixed>
      */
-    public static function fromSpec(array $spec): UploadedFileInterface|array
-    {
-        if (is_array($spec['tmp_name'] ?? null)) {
-            return self::normalizeSpec($spec);
+    public static function fromSpec(
+        string|null|array $tmpName = null,
+        int|null|array $error = null,
+        int|null|array $size = null,
+        string|null|array $clientFilename = null,
+        string|null|array $clientMediaType = null
+    ): UploadedFileInterface|array {
+        if (is_array($tmpName)) {
+            return self::normalizeSpec([
+                'tmp_name' => $tmpName,
+                'error' => $error,
+                'size' => $size,
+                'name' => $clientFilename,
+                'type' => $clientMediaType,
+            ]);
         }
-        $error = Error::fromErrorCode($spec['error'] ?? \UPLOAD_ERR_OK);
-        $size = $spec['size'] ?? null;
-        $clientFilename = $spec['name'] ?? null;
-        $clientMediaType = $spec['type'] ?? null;
-        $file = $spec['tmp_name'] ?? null;
-        if (!is_string($file)) {
+
+        // If $tmpName was not an array, then none of the other arguments
+        // should be arrays either.
+        if (is_array($error) || is_array($size) || is_array($clientFilename) || is_array($clientMediaType)) {
             throw new InvalidFile('Invalid file provided for UploadedFile::fromSpec');
         }
-        return new self($file, 'r+b', $error, $size, $clientFilename, $clientMediaType);
+
+        $error = Error::fromErrorCode((int)($error ?? \UPLOAD_ERR_OK));
+        if (!is_string($tmpName)) {
+            throw new InvalidFile('Invalid file provided for UploadedFile::fromSpec');
+        }
+        return new self($tmpName, 'r+b', $error, $size, $clientFilename, $clientMediaType);
     }
 
     /**
@@ -70,16 +91,16 @@ class UploadedFile implements UploadedFileInterface
     {
         $normalized = [];
 
-        /** @var array<string,mixed> $tmpName */
+        /** @var array<string,string|null|array<string|int,mixed>> $tmpName */
         $tmpName = $spec['tmp_name'] ?? [];
         foreach (array_keys($tmpName) as $key) {
-            $normalized[$key] = self::fromSpec([
-                'tmp_name' => $tmpName[$key] ?? null,
-                'size' => !is_array($spec['size']) ? null : ($spec['size'][$key] ?? null),
-                'error' => !is_array($spec['error']) ? null : ($spec['error'][$key] ?? null),
-                'name' => !is_array($spec['name']) ? null : ($spec['name'][$key] ?? null),
-                'type' => !is_array($spec['type']) ? null : ($spec['type'][$key] ?? null),
-            ]);
+            $normalized[$key] = self::fromSpec(
+                tmpName: $tmpName[$key] ?? null,
+                size: !is_array($spec['size']) ? null : ($spec['size'][$key] ?? null),
+                error: !is_array($spec['error']) ? null : ($spec['error'][$key] ?? null),
+                clientFilename: !is_array($spec['name']) ? null : ($spec['name'][$key] ?? null),
+                clientMediaType: !is_array($spec['type']) ? null : ($spec['type'][$key] ?? null),
+            );
         }
 
         return $normalized;
@@ -103,6 +124,9 @@ class UploadedFile implements UploadedFileInterface
         };
     }
 
+    /**
+     * Get a stream representation of the uploaded file.
+     */
     public function getStream(): StreamInterface
     {
         if (!$this->error->isOK()) {
@@ -118,6 +142,8 @@ class UploadedFile implements UploadedFileInterface
     }
 
     /**
+     * Move the uploaded file to a new location.
+     *
      * @param non-empty-string $targetPath
      */
     public function moveTo(string $targetPath): void
@@ -140,6 +166,9 @@ class UploadedFile implements UploadedFileInterface
         }
     }
 
+    /**
+     * Use a native PHP move operation (rename or move_uploaded_file) to move the file.
+     */
     protected function nativeMove(string $targetPath): bool
     {
         return \PHP_SAPI === 'cli'
@@ -147,6 +176,9 @@ class UploadedFile implements UploadedFileInterface
             : move_uploaded_file($this->file ?? '', $targetPath);
     }
 
+    /**
+     * Use a stream-based operation to move the file.
+     */
     protected function streamMove(string $targetPath): bool
     {
         $stream = $this->getStream();
@@ -156,21 +188,33 @@ class UploadedFile implements UploadedFileInterface
         return $stream->eof();
     }
 
+    /**
+     * Retrieve the file size.
+     */
     public function getSize(): ?int
     {
         return $this->size;
     }
 
+    /**
+     * Retrieve the error associated with the uploaded file.
+     */
     public function getError(): int
     {
         return $this->error->value;
     }
 
+    /**
+     * Retrieve the filename sent by the client.
+     */
     public function getClientFilename(): string|null
     {
         return $this->clientFilename;
     }
 
+    /**
+     * Retrieve the media type sent by the client.
+     */
     public function getClientMediaType(): string|null
     {
         return $this->clientMediaType;
