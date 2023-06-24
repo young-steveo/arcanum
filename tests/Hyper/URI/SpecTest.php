@@ -104,12 +104,13 @@ final class SpecTest extends TestCase
             ->method('asInt')
             ->with('SERVER_PORT');
 
-        $serverParams->expects($this->exactly(2))
+        $serverParams->expects($this->exactly(3))
             ->method('has')
             ->willReturnCallback(
                 fn (string $key) => match ($key) {
                     'HTTP_HOST' => true,
                     'REQUEST_URI' => true,
+                    'SERVER_PORT' => false,
                     default => false
                 }
             );

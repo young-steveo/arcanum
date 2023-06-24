@@ -9,6 +9,9 @@ use Psr\Http\Message\UriInterface;
 
 final class Spec
 {
+    /**
+     * Check if a URI has a default port.
+     */
     public static function hasDefaultPort(UriInterface $uri): bool
     {
         $scheme = $uri->getScheme();
@@ -18,44 +21,67 @@ final class Spec
         return Port::DEFAULT_PORTS[$uri->getScheme()] === $uri->getPort();
     }
 
+    /**
+     * Create a new URI from server parameters.
+     */
     public static function fromServerParams(Registry $serverParams): UriInterface
     {
         $https = $serverParams->asString('HTTPS', 'off');
         $uri = (new URI())->withScheme($https !== 'off' ? 'https' : 'http');
+        return static::setPathAndQuery(static::setHostAndPort($uri, $serverParams), $serverParams);
+    }
 
-        $port = null;
+    /**
+     * Create a copy of $uri with the host and port set from $serverParams.
+     */
+    protected static function setHostAndPort(UriInterface $uri, Registry $serverParams): UriInterface
+    {
+        if ($serverParams->has('SERVER_PORT')) {
+            $uri = $uri->withPort($serverParams->asInt('SERVER_PORT'));
+        }
+
         if ($serverParams->has('HTTP_HOST')) {
             $authority = Authority::fromAuthorityString($serverParams->asString('HTTP_HOST'));
-            $uri = $uri->withHost((string)$authority->getHost());
-            $port = $authority->getPort();
-        } elseif ($serverParams->has('SERVER_NAME')) {
-            $uri = $uri->withHost($serverParams->asString('SERVER_NAME'));
-        } elseif ($serverParams->has('SERVER_ADDR')) {
-            $uri = $uri->withHost($serverParams->asString('SERVER_ADDR'));
+            $host = $authority->getHost();
+            $authorityPort = $authority->getPort();
+            if ($authorityPort !== null) {
+                $uri = $uri->withPort((int)(string)$authorityPort);
+            }
+            return $uri->withHost((string)$host);
         }
-        if ($port === null && $serverParams->has('SERVER_PORT')) {
-            $port = new Port($serverParams->asInt('SERVER_PORT'));
-        }
-        $uri = $uri->withPort($port === null ? null : (int)(string)$port);
 
-        $query = null;
+        if ($serverParams->has('SERVER_NAME')) {
+            return $uri->withHost($serverParams->asString('SERVER_NAME'));
+        }
+
+        if ($serverParams->has('SERVER_ADDR')) {
+            return $uri->withHost($serverParams->asString('SERVER_ADDR'));
+        }
+
+        return $uri;
+    }
+
+    /**
+     * Create a copy of $uri with the path and query set from $serverParams.
+     */
+    protected static function setPathAndQuery(UriInterface $uri, Registry $serverParams): UriInterface
+    {
         if ($serverParams->has('REQUEST_URI')) {
             $requestURI = $serverParams->asString('REQUEST_URI');
-            $requestURIParts = explode('?', $requestURI, 2);
-            $uri = $uri->withPath(explode('#', $requestURIParts[0])[0]);
-            if (isset($requestURIParts[1])) {
-                $query = explode('#', $requestURIParts[1])[0];
-                $uri = $uri->withQuery($query);
+
+            // match the path, query, and fragment into $parts
+            preg_match('/^([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/', $requestURI, $parts);
+
+            list(, $path, $query, $fragment) = $parts;
+
+            if (empty($query) && $serverParams->has('QUERY_STRING')) {
+                $query = $serverParams->asString('QUERY_STRING');
             }
 
-            $requestURIParts = explode('#', $requestURI, 2);
-            if (isset($requestURIParts[1])) {
-                $uri = $uri->withFragment($requestURIParts[1]);
-            }
+            return $uri->withPath($path)->withQuery($query)->withFragment($fragment);
         }
-
-        if (empty($query) && $serverParams->has('QUERY_STRING')) {
-            $uri = $uri->withQuery($serverParams->asString('QUERY_STRING'));
+        if ($serverParams->has('QUERY_STRING')) {
+            return $uri->withQuery($serverParams->asString('QUERY_STRING'));
         }
         return $uri;
     }
@@ -75,16 +101,16 @@ final class Spec
     public static function parse(string $url): array
     {
         $parsed = static::parseURL($url);
-        $parsed['scheme'] = new Scheme($parsed['scheme'] ?? '');
-        $parsed['host'] = new Host($parsed['host'] ?? '');
-        $parsed['port'] = new Port($parsed['port'] ?? null);
-        $parsed['user'] = new UserInfo($parsed['user'] ?? '');
-        $parsed['pass'] = new UserInfo($parsed['pass'] ?? '');
-        $parsed['path'] = new Path($parsed['path'] ?? '');
-        $parsed['query'] = new Query($parsed['query'] ?? '');
-        $parsed['fragment'] = new Fragment($parsed['fragment'] ?? '');
+        $scheme = new Scheme($parsed['scheme'] ?? '');
+        $host = new Host($parsed['host'] ?? '');
+        $port = new Port($parsed['port'] ?? null);
+        $user = new UserInfo($parsed['user'] ?? '');
+        $pass = new UserInfo($parsed['pass'] ?? '');
+        $path = new Path($parsed['path'] ?? '');
+        $query = new Query($parsed['query'] ?? '');
+        $fragment = new Fragment($parsed['fragment'] ?? '');
 
-        return $parsed;
+        return compact('scheme', 'host', 'port', 'user', 'pass', 'path', 'query', 'fragment');
     }
 
 
