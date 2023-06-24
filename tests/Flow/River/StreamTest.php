@@ -1577,7 +1577,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(UnreadableStream::class);
-        $this->expectExceptionMessage('Unable to read from stream');
+        $this->expectExceptionMessage('Unreadable stream: Could not read stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)

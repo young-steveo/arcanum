@@ -209,11 +209,7 @@ class Stream implements Copyable, \Stringable
     {
         $this->guardDetachedSource();
         $meta = $this->source->streamGetMetaData();
-        if (!$key) {
-            return $meta;
-        }
-
-        return $meta[$key] ?? null;
+        return !$key ? $meta : ($meta[$key] ?? null);
     }
 
     /**
@@ -225,13 +221,21 @@ class Stream implements Copyable, \Stringable
 
         try {
             $contents = $this->source->streamGetContents();
-            if ($contents === false) {
-                throw new \RuntimeException('Could not read stream');
-            }
         } catch (\Throwable $e) {
             throw new UnreadableStream('Could not read stream', 0, $e);
         }
-        return $contents;
+        return $this->checkReadData($contents);
+    }
+
+    /**
+     * If data read from the source is false, throw an exception.
+     */
+    protected function checkReadData(string|false $data): string
+    {
+        if ($data === false) {
+            throw new UnreadableStream('Could not read stream');
+        }
+        return $data;
     }
 
     /**
@@ -273,11 +277,7 @@ class Stream implements Copyable, \Stringable
         } catch (\Throwable $e) {
             throw new UnreadableStream('Unable to read from stream', 0, $e);
         }
-        if ($data === false) {
-            throw new UnreadableStream('Unable to read from stream');
-        }
-
-        return $data;
+        return $this->checkReadData($data);
     }
 
     /**
