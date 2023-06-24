@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Conveyor;
+namespace Arcanum\Test\Flow\Conveyor;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Arcanum\Conveyor\MiddlewareBus;
+use Arcanum\Flow\Conveyor\MiddlewareBus;
 use Arcanum\Cabinet\Container;
-use Arcanum\Test\Conveyor\Fixture\DoSomething;
-use Arcanum\Test\Conveyor\Fixture\DoSomethingHandler;
-use Arcanum\Test\Conveyor\Fixture\DoSomethingResult;
+use Arcanum\Test\Flow\Conveyor\Fixture\DoSomething;
+use Arcanum\Test\Flow\Conveyor\Fixture\DoSomethingHandler;
+use Arcanum\Test\Flow\Conveyor\Fixture\DoSomethingResult;
 use Arcanum\Flow\Continuum\Continuum;
 
 #[CoversClass(MiddlewareBus::class)]

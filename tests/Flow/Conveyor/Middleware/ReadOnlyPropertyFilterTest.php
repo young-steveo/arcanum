@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Conveyor\Middleware;
+namespace Arcanum\Test\Flow\Conveyor\Middleware;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Arcanum\Conveyor\Middleware\ReadOnlyPropertyFilter;
-use Arcanum\Conveyor\Middleware\InvalidDTO;
-use Arcanum\Test\Conveyor\Fixture\ValidDTO;
-use Arcanum\Test\Conveyor\Fixture\HasMutableProperty;
+use Arcanum\Flow\Conveyor\Middleware\ReadOnlyPropertyFilter;
+use Arcanum\Flow\Conveyor\Middleware\InvalidDTO;
+use Arcanum\Test\Flow\Conveyor\Fixture\ValidDTO;
+use Arcanum\Test\Flow\Conveyor\Fixture\HasMutableProperty;
 
 #[CoversClass(ReadOnlyPropertyFilter::class)]
 #[UsesClass(InvalidDTO::class)]
@@ -33,7 +33,7 @@ final class ReadOnlyPropertyFilterTest extends TestCase
         // Assert
         $this->expectException(InvalidDTO::class);
         $this->expectExceptionMessage(
-            "Invalid DTO: Arcanum\Test\Conveyor\Fixture\HasMutableProperty has properties that are not readonly."
+            "Invalid DTO: Arcanum\Test\Flow\Conveyor\Fixture\HasMutableProperty has properties that are not readonly."
         );
 
         // Act

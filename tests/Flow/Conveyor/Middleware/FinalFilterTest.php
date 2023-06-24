@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Conveyor\Middleware;
+namespace Arcanum\Test\Flow\Conveyor\Middleware;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use Arcanum\Conveyor\Middleware\FinalFilter;
-use Arcanum\Conveyor\Middleware\InvalidDTO;
-use Arcanum\Test\Conveyor\Fixture\ValidDTO;
+use Arcanum\Flow\Conveyor\Middleware\FinalFilter;
+use Arcanum\Flow\Conveyor\Middleware\InvalidDTO;
+use Arcanum\Test\Flow\Conveyor\Fixture\ValidDTO;
 
 #[CoversClass(FinalFilter::class)]
 #[UsesClass(InvalidDTO::class)]

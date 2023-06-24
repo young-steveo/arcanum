@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Conveyor\Fixture;
+namespace Arcanum\Test\Flow\Conveyor\Fixture;
 
 final class ValidDTO
 {

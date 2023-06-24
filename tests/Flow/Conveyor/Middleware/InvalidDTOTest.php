@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Conveyor\Middleware;
+namespace Arcanum\Test\Flow\Conveyor\Middleware;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(\Arcanum\Conveyor\Middleware\InvalidDTO::class)]
+#[CoversClass(\Arcanum\Flow\Conveyor\Middleware\InvalidDTO::class)]
 final class InvalidDTOTest extends TestCase
 {
     public function testInvalidDTO(): void
     {
         // Arrange
-        $InvalidDTO = new \Arcanum\Conveyor\Middleware\InvalidDTO('foo');
+        $InvalidDTO = new \Arcanum\Flow\Conveyor\Middleware\InvalidDTO('foo');
 
         // Act
         $message = $InvalidDTO->getMessage();

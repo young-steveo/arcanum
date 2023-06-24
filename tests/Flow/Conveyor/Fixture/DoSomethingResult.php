@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Conveyor\Fixture;
+namespace Arcanum\Test\Flow\Conveyor\Fixture;
 
-final class DoSomething
+final class DoSomethingResult
 {
     public function __construct(public readonly string $name)
     {

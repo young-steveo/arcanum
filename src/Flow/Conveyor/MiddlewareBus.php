@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Conveyor;
+namespace Arcanum\Flow\Conveyor;
 
 use Psr\Container\ContainerInterface;
 use Arcanum\Flow\Continuum\Continuum;

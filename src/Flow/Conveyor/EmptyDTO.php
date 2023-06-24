@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Conveyor;
+namespace Arcanum\Flow\Conveyor;
 
 /**
  * Empty is a DTO that has no data.
