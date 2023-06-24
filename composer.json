@@ -37,7 +37,7 @@
         "post-install-cmd": [
             "bash contrib/setup"
         ],
-        "check": [ "@cs-fix", "@cs-check", "@phpstan", "@phpunit", "@metrics" ],
+        "check": [ "@cs-fix", "@cs-check", "@phpstan", "@phpunit" ],
         "cs-check": "bash contrib/cs-check",
         "cs-fix": "phpcbf --colors --standard=./contrib/phpcs-ruleset.xml --ignore=.coverage,.phpunit.cache",
         "phpstan": "bash contrib/phpstan",
