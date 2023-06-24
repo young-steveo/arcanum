@@ -41,7 +41,8 @@ final class Authority implements \Stringable
      */
     public function __toString(): string
     {
-        return trim($this->getUserInfo() . '@' . $this->host . ':' . $this->port, '@:');
+        $port = $this->port ?? '';
+        return trim($this->getUserInfo() . '@' . $this->host . ':' . $port, '@:');
     }
 
     /**

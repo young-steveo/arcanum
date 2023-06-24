@@ -26,12 +26,12 @@ final class Port implements \Stringable
     /**
      * Port.
      */
-    public function __construct(private int|string|null $value)
+    public function __construct(private int|string $value)
     {
         if (is_string($value)) {
             $value = (int)$value;
         }
-        if ($value !== null && ($value < 0 || $value > 65535)) {
+        if ($value < 0 || $value > 65535) {
             throw new \InvalidArgumentException('Port must be between 1 and 65535, or null.');
         }
     }
@@ -41,6 +41,6 @@ final class Port implements \Stringable
      */
     public function __toString(): string
     {
-        return $this->value === null ? '' : (string) $this->value;
+        return (string) $this->value;
     }
 }

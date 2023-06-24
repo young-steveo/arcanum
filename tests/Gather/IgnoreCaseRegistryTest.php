@@ -176,4 +176,16 @@ final class IgnoreCaseRegistryTest extends TestCase
         // Assert
         $this->assertEquals($registry, $unserialized);
     }
+
+    public function testToArray(): void
+    {
+        // Arrange
+        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
+
+        // Act
+        $array = $registry->toArray();
+
+        // Assert
+        $this->assertSame(['foo' => 'bar'], $array);
+    }
 }

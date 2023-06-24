@@ -18,7 +18,6 @@ use Arcanum\Hyper\URI\Scheme;
 use Arcanum\Hyper\URI\UserInfo;
 use Arcanum\Hyper\URI\MalformedURI;
 use Arcanum\Hyper\URI\Spec;
-use Arcanum\Gather\Registry;
 
 #[CoversClass(URI::class)]
 #[UsesClass(Authority::class)]
@@ -91,7 +90,7 @@ final class URITest extends TestCase
         new URI($url);
     }
 
-    public function testWithUSerInfo(): void
+    public function testWithUserInfo(): void
     {
         // Arrange
         $url = 'https://user:pass@www.example.com:8080/path/abc?query=foo#fragment';
@@ -104,6 +103,111 @@ final class URITest extends TestCase
         $this->assertSame('newuser:newpass', $newURI->getUserInfo());
         $this->assertSame('https://user:pass@www.example.com:8080/path/abc?query=foo#fragment', (string) $uri);
         $this->assertSame('https://newuser:newpass@www.example.com:8080/path/abc?query=foo#fragment', (string) $newURI);
+    }
+
+    public function testWithScheme(): void
+    {
+        // Arrange
+        $url = 'https://www.example.com:8080/path/abc?query=foo#fragment';
+        $uri = new URI($url);
+
+        // Act
+        $newURI = $uri->withScheme('http');
+
+        // Assert
+        $this->assertSame('http', $newURI->getScheme());
+        $this->assertSame('https', $uri->getScheme());
+        $this->assertSame('http://www.example.com:8080/path/abc?query=foo#fragment', (string) $newURI);
+    }
+
+    public function testWithHost(): void
+    {
+        // Arrange
+        $url = 'https://www.example.com:8080/path/abc?query=foo#fragment';
+        $uri = new URI($url);
+
+        // Act
+        $newURI = $uri->withHost('www.example.org');
+
+        // Assert
+        $this->assertSame('www.example.org', $newURI->getHost());
+        $this->assertSame('www.example.com', $uri->getHost());
+        $this->assertSame('https://www.example.org:8080/path/abc?query=foo#fragment', (string) $newURI);
+    }
+
+    public function testWithPort(): void
+    {
+        // Arrange
+        $url = 'https://www.example.com:8080/path/abc?query=foo#fragment';
+        $uri = new URI($url);
+
+        // Act
+        $newURI = $uri->withPort(80);
+
+        // Assert
+        $this->assertSame(80, $newURI->getPort());
+        $this->assertSame(8080, $uri->getPort());
+        $this->assertSame('https://www.example.com:80/path/abc?query=foo#fragment', (string) $newURI);
+    }
+
+    public function testWithPath(): void
+    {
+        // Arrange
+        $url = 'https://www.example.com:8080/path/abc?query=foo#fragment';
+        $uri = new URI($url);
+
+        // Act
+        $newURI = $uri->withPath('/new/path');
+
+        // Assert
+        $this->assertSame('/new/path', $newURI->getPath());
+        $this->assertSame('/path/abc', $uri->getPath());
+        $this->assertSame('https://www.example.com:8080/new/path?query=foo#fragment', (string) $newURI);
+    }
+
+    public function testWithQuery(): void
+    {
+        // Arrange
+        $url = 'https://www.example.com:8080/path/abc?query=foo#fragment';
+        $uri = new URI($url);
+
+        // Act
+        $newURI = $uri->withQuery('newquery=bar');
+
+        // Assert
+        $this->assertSame('newquery=bar', $newURI->getQuery());
+        $this->assertSame('query=foo', $uri->getQuery());
+        $this->assertSame('https://www.example.com:8080/path/abc?newquery=bar#fragment', (string) $newURI);
+    }
+
+    public function testWithFragment(): void
+    {
+        // Arrange
+        $url = 'https://www.example.com:8080/path/abc?query=foo#fragment';
+        $uri = new URI($url);
+
+        // Act
+        $newURI = $uri->withFragment('newfragment');
+
+        // Assert
+        $this->assertSame('newfragment', $newURI->getFragment());
+        $this->assertSame('fragment', $uri->getFragment());
+        $this->assertSame('https://www.example.com:8080/path/abc?query=foo#newfragment', (string) $newURI);
+    }
+
+    public function testWithHostSettingEmptyHostWillDefaultToLocalHostOnWebSchemes(): void
+    {
+        // Arrange
+        $url = 'https://www.example.com:8080/path/abc?query=foo#fragment';
+        $uri = new URI($url);
+
+        // Act
+        $newURI = $uri->withHost('');
+
+        // Assert
+        $this->assertSame('localhost', $newURI->getHost());
+        $this->assertSame('www.example.com', $uri->getHost());
+        $this->assertSame('https://localhost:8080/path/abc?query=foo#fragment', (string) $newURI);
     }
 
     public function testStripsDefaultPort(): void

@@ -78,7 +78,7 @@ class Message implements MessageInterface
     public function withHeader(string $name, $value): MessageInterface
     {
         $request = clone $this;
-        $request->headers[$name] = [$value];
+        $request->headers[$name] = (array)$value;
         return $request;
     }
 

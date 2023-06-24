@@ -29,8 +29,8 @@ final class HeadersTest extends TestCase
         $origin = $headers->get('origiN');
 
         // Assert
-        $this->assertEquals('en.wikipedia.org:8080', $host);
-        $this->assertEquals('http://www.example-social-network.com', $origin);
+        $this->assertEquals(['en.wikipedia.org:8080'], $host);
+        $this->assertEquals(['http://www.example-social-network.com'], $origin);
     }
 
     public function testSetHeader(): void

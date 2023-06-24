@@ -33,18 +33,6 @@ final class PortTest extends TestCase
         new Port(65536);
     }
 
-    public function testNullPort(): void
-    {
-        // Arrange
-        $port = new Port(null);
-
-        // Act
-        $data = (string)$port;
-
-        // Assert
-        $this->assertSame('', $data);
-    }
-
     public function testStringPort(): void
     {
         // Arrange

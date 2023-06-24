@@ -14,7 +14,7 @@ use Psr\Http\Message\UriInterface;
  */
 
 
-class Request extends Message implements RequestInterface
+class Request implements RequestInterface, \Stringable
 {
     /**
      * If this is set, it will override the request target of the URI.
@@ -22,24 +22,13 @@ class Request extends Message implements RequestInterface
     protected string|null $requestTarget = null;
 
     public function __construct(
-        protected Headers $headers,
-        protected StreamInterface $body,
-        protected Version $protocolVersion,
+        protected MessageInterface $message,
         protected RequestMethod $method,
         protected UriInterface $uri,
     ) {
-        parent::__construct($headers, $body, $protocolVersion);
-        if ($this->headers->has('Host')) {
+        if ($this->message->hasHeader('Host')) {
             $this->setHostHeaderFromURI();
         }
-    }
-
-    /**
-     * Clone the request.
-     */
-    public function __clone()
-    {
-        $this->headers = clone $this->headers;
     }
 
     /**
@@ -59,7 +48,7 @@ class Request extends Message implements RequestInterface
             $host .= ":$port";
         }
 
-        $this->headers['Host'] = [$host];
+        $this->message = $this->message->withHeader('Host', $host);
     }
 
     /**
@@ -139,10 +128,155 @@ class Request extends Message implements RequestInterface
         $request = clone $this;
         $request->uri = $uri;
 
-        if (!$preserveHost || $this->headers->get('Host') === null) {
+        if (!$preserveHost || empty($this->message->getHeader('Host'))) {
             $request->setHostHeaderFromURI();
         }
 
         return $request;
+    }
+
+    /**
+     * MessageInterface methods
+     */
+
+    /**
+     * Retrieves the HTTP protocol version as a string.
+     */
+    public function getProtocolVersion(): string
+    {
+        return $this->message->getProtocolVersion();
+    }
+
+    /**
+     * Return an instance with the specified HTTP protocol version.
+     */
+    public function withProtocolVersion(string $version): MessageInterface
+    {
+        $request = clone $this;
+        $request->message = $request->message->withProtocolVersion($version);
+        return $request;
+    }
+
+    /**
+     * Retrieves all message header values.
+     *
+     * @return array<string, string[]>
+     */
+    public function getHeaders(): array
+    {
+        return $this->message->getHeaders();
+    }
+
+    /**
+     * Checks if a header exists by the given case-insensitive name.
+     */
+    public function hasHeader(string $name): bool
+    {
+        return $this->message->hasHeader($name);
+    }
+
+    /**
+     * Retrieves a message header value by the given case-insensitive name.
+     *
+     * @return string[]
+     */
+    public function getHeader(string $name): array
+    {
+        return $this->message->getHeader($name);
+    }
+
+    /**
+     * Retrieves a comma-separated string of the values for a single header.
+     */
+    public function getHeaderLine(string $name): string
+    {
+        return $this->message->getHeaderLine($name);
+    }
+
+    /**
+     * Return an instance with the provided value replacing the specified header.
+     *
+     * @param string|string[] $value
+     */
+    public function withHeader(string $name, $value): MessageInterface
+    {
+        $request = clone $this;
+        $request->message = $request->message->withHeader($name, $value);
+        return $request;
+    }
+
+    /**
+     * Return an instance with the specified header appended with the given value.
+     *
+     * @param string|string[] $value
+     */
+    public function withAddedHeader(string $name, $value): MessageInterface
+    {
+        $request = clone $this;
+        $request->message = $request->message->withAddedHeader($name, $value);
+        return $request;
+    }
+
+    /**
+     * Return an instance without the specified header.
+     */
+    public function withoutHeader(string $name): MessageInterface
+    {
+        $request = clone $this;
+        $request->message = $request->message->withoutHeader($name);
+        return $request;
+    }
+
+    /**
+     * Retrieves the body of the message.
+     */
+    public function getBody(): StreamInterface
+    {
+        return $this->message->getBody();
+    }
+
+    /**
+     * Return an instance with the specified message body.
+     */
+    public function withBody(StreamInterface $body): MessageInterface
+    {
+        $request = clone $this;
+        $request->message = $request->message->withBody($body);
+        return $request;
+    }
+
+    /**
+     * Request as string.
+     */
+    public function __toString(): string
+    {
+        $method = $this->getMethod();
+        $target = $this->getRequestTarget();
+        $protocol = $this->getProtocolVersion();
+
+        $message = trim("$method $target") . " HTTP/$protocol";
+
+        if ($this->hasHeader('Host')) {
+            $message .= "\r\nHost: " . $this->getHeaderLine('Host');
+        }
+        if ($this->hasHeader('Set-Cookie')) {
+            $message .= $this->cookieHeaderAsString($this->getHeader('Set-Cookie'));
+        }
+        foreach (array_keys($this->withoutHeader('Host')->withoutHeader('Set-Cookie')->getHeaders()) as $name) {
+            $message .= "\r\n$name: " . $this->getHeaderLine($name);
+        }
+        return "$message\r\n\r\n" . $this->getBody();
+    }
+
+    /**
+     * @param string[] $cookies
+     */
+    protected function cookieHeaderAsString(array $cookies): string
+    {
+        $cookieHeader = '';
+        foreach ($cookies as $cookie) {
+            $cookieHeader .= "\r\nSet-Cookie: $cookie";
+        }
+        return $cookieHeader;
     }
 }

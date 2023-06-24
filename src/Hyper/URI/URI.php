@@ -83,11 +83,11 @@ class URI implements UriInterface
 
         $this->composed .= $this->path;
 
-        if ($this->query !== '') {
+        if ((string)$this->query !== '') {
             $this->composed .= '?' . $this->query;
         }
 
-        if ($this->fragment !== '') {
+        if ((string)$this->fragment !== '') {
             $this->composed .= '#' . $this->fragment;
         }
 
@@ -204,7 +204,7 @@ class URI implements UriInterface
     public function withPort(int|null $port): UriInterface
     {
         $clone = clone $this;
-        $clone->authority = $this->authority->withPort(new Port($port));
+        $clone->authority = $this->authority->withPort($port === null ? null : new Port($port));
         $clone->composed = null;
         $clone->finalize();
         return $clone;

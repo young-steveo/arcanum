@@ -184,4 +184,14 @@ class IgnoreCaseRegistry extends Registry
             unset($this->data['@!*__keyMap']);
         }
     }
+
+    /**
+     * Return the data as an array.
+     */
+    public function toArray(): array
+    {
+        $data = parent::toArray();
+        unset($data['@!*__keyMap']);
+        return $data;
+    }
 }

@@ -113,7 +113,7 @@ final class Spec
      * @return array{
      *   scheme: \Arcanum\Hyper\URI\Scheme,
      *   host: \Arcanum\Hyper\URI\Host,
-     *   port: \Arcanum\Hyper\URI\Port,
+     *   port: \Arcanum\Hyper\URI\Port|null,
      *   user: \Arcanum\Hyper\URI\UserInfo,
      *   pass: \Arcanum\Hyper\URI\UserInfo,
      *   path: \Arcanum\Hyper\URI\Path,
@@ -126,7 +126,7 @@ final class Spec
         $parsed = static::parseURL($url);
         $scheme = new Scheme($parsed['scheme'] ?? '');
         $host = new Host($parsed['host'] ?? '');
-        $port = new Port($parsed['port'] ?? null);
+        $port = isset($parsed['port']) ? new Port($parsed['port']) : null;
         $user = new UserInfo($parsed['user'] ?? '');
         $pass = new UserInfo($parsed['pass'] ?? '');
         $path = new Path($parsed['path'] ?? '');
@@ -179,12 +179,25 @@ final class Spec
             $url
         );
 
-        $result = parse_url($prefix . $encoded);
+        $parts = static::parseFullURL($prefix . $encoded);
 
-        if ($result === false) {
-            throw new MalformedURI($url);
-        }
+        return array_map(fn(string|int $part) => \urldecode((string)$part), $parts);
+    }
 
-        return array_map(fn(string|int $part) => \urldecode((string)$part), $result);
+    /**
+     * @return array{
+     *  scheme?: string,
+     *  host?: string,
+     *  port?: int<0, 65535>,
+     *  user?: string,
+     *  pass?: string,
+     *  path?: string,
+     *  query?: string,
+     *  fragment?: string
+     * }
+     */
+    public static function parseFullURL(string $url): array
+    {
+        return parse_url($url) ?: throw new MalformedURI($url);
     }
 }

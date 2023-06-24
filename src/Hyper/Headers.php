@@ -19,7 +19,7 @@ class Headers extends IgnoreCaseRegistry
         foreach ($data as $header => $values) {
             $cleanData[$this->cleanHeader($header)] = $this->cleanValues($values);
         }
-        parent::__construct($data);
+        parent::__construct($cleanData);
     }
 
     /**
@@ -63,6 +63,9 @@ class Headers extends IgnoreCaseRegistry
         parent::offsetSet($this->cleanHeader($header), $this->cleanValues($value));
     }
 
+    /**
+     * Ensure the header name confirms.
+     */
     protected function cleanHeader(mixed $header): string
     {
         if (!is_string($header)) {

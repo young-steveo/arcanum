@@ -31,6 +31,6 @@ class TemporaryStream extends Stream
             throw new \RuntimeException('Could not open temporary stream');
         }
         // @codeCoverageIgnoreEnd
-        return new Stream(StreamResource::wrap($pointer));
+        return new self(StreamResource::wrap($pointer));
     }
 }

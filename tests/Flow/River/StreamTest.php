@@ -1191,6 +1191,60 @@ final class StreamTest extends TestCase
         $stream->getContents();
     }
 
+    public function testGetContentsThrowsUnreadableStreamIfStreamGetContentsThrowsAnything(): void
+    {
+        // Arrange
+        $this->expectException(UnreadableStream::class);
+        $this->expectExceptionMessage('Unreadable stream: Could not read stream');
+
+        /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
+        $resource = $this->getMockBuilder(StreamResource::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([
+                'isResource',
+                'streamGetMetaData',
+                'fclose',
+                'export',
+                'streamGetContents',
+            ])
+            ->getMock();
+
+        $resource->expects($this->exactly(2))
+            ->method('isResource')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('streamGetMetaData')
+            ->willReturn([
+                'timed_out' => false,
+                'blocked' => true,
+                'eof' => false,
+                'wrapper_type' => 'PHP',
+                'stream_type' => 'STDIO',
+                'mode' => 'r',
+                'unread_bytes' => 0,
+                'seekable' => true,
+                'uri' => 'php://stdin',
+            ]);
+
+        $resource->expects($this->once())
+            ->method('streamGetContents')
+            ->willThrowException(new \Exception('foo'));
+
+        $resource->expects($this->once())
+            ->method('fclose')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('export')
+            ->willReturn(fopen('php://stdin', 'r'));
+
+        $stream = new Stream($resource);
+
+        // Act
+        $stream->getContents();
+    }
+
     public function testToString(): void
     {
         // Arrange

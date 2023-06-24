@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Arcanum\Test\Cabinet\Error;
+namespace Arcanum\Test\Cabinet;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;

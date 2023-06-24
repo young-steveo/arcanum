@@ -7,6 +7,7 @@ namespace Arcanum\Hyper;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
+use Psr\Http\Message\RequestInterface;
 use Arcanum\Flow\River\CachingStream;
 use Arcanum\Flow\River\Stream;
 use Arcanum\Flow\River\LazyResource;
@@ -14,13 +15,8 @@ use Arcanum\Gather\Registry;
 use Arcanum\Hyper\URI\Spec;
 use Arcanum\Hyper\Files\UploadedFiles;
 
-class ServerRequest extends Request implements ServerRequestInterface
+class ServerRequest implements ServerRequestInterface, \Stringable
 {
-    /**
-     * Uploaded files.
-     */
-    protected UploadedFiles|null $uploadedFiles;
-
     /**
      * @var array<string, string>
      */
@@ -42,14 +38,10 @@ class ServerRequest extends Request implements ServerRequestInterface
     protected array|object|null $parsedBody = null;
 
     public function __construct(
-        protected Headers $headers,
-        protected StreamInterface $body,
-        protected Version $protocolVersion,
-        protected RequestMethod $method,
-        protected UriInterface $uri,
+        protected RequestInterface $request,
         protected Registry $serverParams,
+        protected UploadedFiles|null $uploadedFiles = null,
     ) {
-        parent::__construct($headers, $body, $protocolVersion, $method, $uri);
     }
 
     public static function fromGlobals(): ServerRequestInterface
@@ -64,9 +56,11 @@ class ServerRequest extends Request implements ServerRequestInterface
             str_replace('HTTP/', '', $serverParams->asString('SERVER_PROTOCOL', '1.1'))
         );
 
-        $request = new self($headers, $body, $protocolVersion, $method, $uri, $serverParams);
+        $message = new Message($headers, $body, $protocolVersion);
+        $request = new Request($message, $method, $uri);
+        $serverRequest = new self($request, $serverParams);
 
-        return $request
+        return $serverRequest
             ->withCookieParams($_COOKIE)
             ->withQueryParams($_GET)
             ->withParsedBody($_POST)
@@ -216,5 +210,198 @@ class ServerRequest extends Request implements ServerRequestInterface
         $new = clone $this;
         $new->parsedBody = $data;
         return $new;
+    }
+
+    /**
+     * RequestInterface methods
+     */
+
+    /**
+     * Retrieve the message's request target.
+     * @return string
+     */
+    public function getRequestTarget(): string
+    {
+        return $this->request->getRequestTarget();
+    }
+
+    /**
+     * Return an instance with the specific request-target.
+     */
+    public function withRequestTarget(string $requestTarget): ServerRequestInterface
+    {
+        $new = clone $this;
+        $new->request = $this->request->withRequestTarget($requestTarget);
+        return $new;
+    }
+
+    /**
+     * Retrieve the HTTP method of the request.
+     */
+    public function getMethod(): string
+    {
+        return $this->request->getMethod();
+    }
+
+    /**
+     * Return an instance with the provided HTTP method.
+     *
+     * @param string $method
+     */
+    public function withMethod($method): ServerRequestInterface
+    {
+        $new = clone $this;
+        $new->request = $this->request->withMethod($method);
+        return $new;
+    }
+
+    /**
+     * Retrieve the URI instance.
+     */
+    public function getUri(): UriInterface
+    {
+        return $this->request->getUri();
+    }
+
+    /**
+     * Return an instance with the provided URI.
+     *
+     * @param UriInterface $uri
+     */
+    public function withUri(UriInterface $uri, $preserveHost = false): ServerRequestInterface
+    {
+        $new = clone $this;
+        $new->request = $this->request->withUri($uri, $preserveHost);
+        return $new;
+    }
+
+    /**
+     * Retrieve the HTTP protocol version as a string.
+     */
+    public function getProtocolVersion(): string
+    {
+        return $this->request->getProtocolVersion();
+    }
+
+    /**
+     * Return an instance with the provided HTTP protocol version.
+     *
+     * @param string $version
+     */
+    public function withProtocolVersion($version): ServerRequestInterface
+    {
+        $new = clone $this;
+        $new->request = $this->request->withProtocolVersion($version);
+        return $new;
+    }
+
+    /**
+     * Retrieve all message header values.
+     *
+     * @return string[][]
+     */
+    public function getHeaders(): array
+    {
+        return $this->request->getHeaders();
+    }
+
+    /**
+     * Checks if a header exists by the given case-insensitive name.
+     *
+     * @param string $name
+     */
+    public function hasHeader(string $name): bool
+    {
+        return $this->request->hasHeader($name);
+    }
+
+    /**
+     * Retrieve a message header value by the given case-insensitive name.
+     *
+     * @param string $name
+     * @return string[]
+     */
+    public function getHeader(string $name): array
+    {
+        return $this->request->getHeader($name);
+    }
+
+    /**
+     * Retrieve a comma-separated string of the values for a single header.
+     *
+     * @param string $name
+     */
+    public function getHeaderLine(string $name): string
+    {
+        return $this->request->getHeaderLine($name);
+    }
+
+    /**
+     * Return an instance with the provided value replacing the specified header.
+     *
+     * @param string $name
+     * @param string|string[] $value
+     */
+    public function withHeader(string $name, $value): ServerRequestInterface
+    {
+        $new = clone $this;
+        $new->request = $this->request->withHeader($name, $value);
+        return $new;
+    }
+
+    /**
+     * Return an instance with the specified header appended with the given value.
+     *
+     * @param string $name
+     * @param string|string[] $value
+     */
+    public function withAddedHeader(string $name, $value): ServerRequestInterface
+    {
+        $new = clone $this;
+        $new->request = $this->request->withAddedHeader($name, $value);
+        return $new;
+    }
+
+    /**
+     * Return an instance without the specified header.
+     *
+     * @param string $name
+     */
+    public function withoutHeader(string $name): ServerRequestInterface
+    {
+        $new = clone $this;
+        $new->request = $this->request->withoutHeader($name);
+        return $new;
+    }
+
+    /**
+     * Retrieve the body of the message.
+     */
+    public function getBody(): StreamInterface
+    {
+        return $this->request->getBody();
+    }
+
+    /**
+     * Return an instance with the specified message body.
+     *
+     * @param StreamInterface $body
+     */
+    public function withBody(StreamInterface $body): ServerRequestInterface
+    {
+        $new = clone $this;
+        $new->request = $this->request->withBody($body);
+        return $new;
+    }
+
+    /**
+     * Get the request message as a string
+     */
+    public function __toString(): string
+    {
+        if ($this->request instanceof \Stringable) {
+            return (string)$this->request;
+        }
+        return $this->request->getBody()->getContents();
     }
 }
