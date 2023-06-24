@@ -6,6 +6,9 @@ namespace Arcanum\Codex;
 
 final class PrimitiveResolver
 {
+    /**
+     * Resolve a primitive type.
+     */
     public static function resolve(\ReflectionParameter $parameter): mixed
     {
         if ($parameter->isDefaultValueAvailable()) {
