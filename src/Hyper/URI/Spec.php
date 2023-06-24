@@ -28,26 +28,20 @@ final class Spec
     {
         $https = $serverParams->asString('HTTPS', 'off');
         $uri = (new URI())->withScheme($https !== 'off' ? 'https' : 'http');
-        return static::setPathAndQuery(static::setHostAndPort($uri, $serverParams), $serverParams);
+        $uri = static::setPort($uri, $serverParams);
+        $uri = static::setHost($uri, $serverParams);
+        $uri = static::setPath($uri, $serverParams);
+        $uri = static::setQuery($uri, $serverParams);
+        return $uri;
     }
 
     /**
      * Create a copy of $uri with the host and port set from $serverParams.
      */
-    protected static function setHostAndPort(UriInterface $uri, Registry $serverParams): UriInterface
+    protected static function setHost(UriInterface $uri, Registry $serverParams): UriInterface
     {
-        if ($serverParams->has('SERVER_PORT')) {
-            $uri = $uri->withPort($serverParams->asInt('SERVER_PORT'));
-        }
-
         if ($serverParams->has('HTTP_HOST')) {
-            $authority = Authority::fromAuthorityString($serverParams->asString('HTTP_HOST'));
-            $host = $authority->getHost();
-            $authorityPort = $authority->getPort();
-            if ($authorityPort !== null) {
-                $uri = $uri->withPort((int)(string)$authorityPort);
-            }
-            return $uri->withHost((string)$host);
+            return static::setHostAndPortFromHttpHost($uri, $serverParams->asString('HTTP_HOST'));
         }
 
         if ($serverParams->has('SERVER_NAME')) {
@@ -62,9 +56,34 @@ final class Spec
     }
 
     /**
+     * Create a copy of $uri with the port set from $serverParams.
+     */
+    public static function setPort(UriInterface $uri, Registry $serverParams): UriInterface
+    {
+        if ($serverParams->has('SERVER_PORT')) {
+            $uri = $uri->withPort($serverParams->asInt('SERVER_PORT'));
+        }
+        return $uri;
+    }
+
+    /**
+     * Create a copy of $uri with the host and port set from $httpHost.
+     */
+    protected static function setHostAndPortFromHttpHost(UriInterface $uri, string $httpHost): UriInterface
+    {
+        $authority = Authority::fromAuthorityString($httpHost);
+        $host = $authority->getHost();
+        $authorityPort = $authority->getPort();
+        if ($authorityPort !== null) {
+            $uri = $uri->withPort((int)(string)$authorityPort);
+        }
+        return $uri->withHost((string)$host);
+    }
+
+    /**
      * Create a copy of $uri with the path and query set from $serverParams.
      */
-    protected static function setPathAndQuery(UriInterface $uri, Registry $serverParams): UriInterface
+    protected static function setPath(UriInterface $uri, Registry $serverParams): UriInterface
     {
         if ($serverParams->has('REQUEST_URI')) {
             $requestURI = $serverParams->asString('REQUEST_URI');
@@ -74,12 +93,16 @@ final class Spec
 
             list(, $path, $query, $fragment) = $parts;
 
-            if (empty($query) && $serverParams->has('QUERY_STRING')) {
-                $query = $serverParams->asString('QUERY_STRING');
-            }
-
             return $uri->withPath($path)->withQuery($query)->withFragment($fragment);
         }
+        return $uri;
+    }
+
+    /**
+     * Create a copy of $uri with the query set from $serverParams.
+     */
+    protected static function setQuery(UriInterface $uri, Registry $serverParams): UriInterface
+    {
         if ($serverParams->has('QUERY_STRING')) {
             return $uri->withQuery($serverParams->asString('QUERY_STRING'));
         }

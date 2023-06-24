@@ -40,13 +40,14 @@ final class SpecTest extends TestCase
             ->onlyMethods(['asString', 'has', 'asInt'])
             ->getMock();
 
-        $serverParams->expects($this->exactly(3))
+        $serverParams->expects($this->exactly(4))
             ->method('asString')
             ->willReturnCallback(
                 fn (string $key) => match ($key) {
                     'HTTPS' => 'on',
                     'HTTP_HOST' => 'www.example.com',
                     'REQUEST_URI' => '/path/abc?query=foo#fragment',
+                    'QUERY_STRING' => 'query=foo',
                     default => "Unexpected key: $key"
                 }
             );
@@ -56,13 +57,14 @@ final class SpecTest extends TestCase
             ->with('SERVER_PORT')
             ->willReturn(8080);
 
-        $serverParams->expects($this->exactly(3))
+        $serverParams->expects($this->exactly(4))
             ->method('has')
             ->willReturnCallback(
                 fn (string $key) => match ($key) {
                     'HTTP_HOST' => true,
                     'SERVER_PORT' => true,
                     'REQUEST_URI' => true,
+                    'QUERY_STRING' => true,
                     default => false
                 }
             );
@@ -89,13 +91,14 @@ final class SpecTest extends TestCase
             ->onlyMethods(['asString', 'has', 'asInt'])
             ->getMock();
 
-        $serverParams->expects($this->exactly(3))
+        $serverParams->expects($this->exactly(4))
             ->method('asString')
             ->willReturnCallback(
                 fn (string $key) => match ($key) {
                     'HTTPS' => 'on',
                     'HTTP_HOST' => 'www.example.com:8080',
                     'REQUEST_URI' => '/path/abc?query=foo#fragment',
+                    'QUERY_STRING' => 'query=foo',
                     default => "Unexpected key: $key"
                 }
             );
@@ -104,13 +107,14 @@ final class SpecTest extends TestCase
             ->method('asInt')
             ->with('SERVER_PORT');
 
-        $serverParams->expects($this->exactly(3))
+        $serverParams->expects($this->exactly(4))
             ->method('has')
             ->willReturnCallback(
                 fn (string $key) => match ($key) {
                     'HTTP_HOST' => true,
                     'REQUEST_URI' => true,
                     'SERVER_PORT' => false,
+                    'QUERY_STRING' => true,
                     default => false
                 }
             );
@@ -138,13 +142,14 @@ final class SpecTest extends TestCase
             ->onlyMethods(['asString', 'has', 'asInt'])
             ->getMock();
 
-        $serverParams->expects($this->exactly(3))
+        $serverParams->expects($this->exactly(4))
             ->method('asString')
             ->willReturnCallback(
                 fn (string $key) => match ($key) {
                     'HTTPS' => 'on',
                     'SERVER_NAME' => 'www.example.com',
                     'REQUEST_URI' => '/path/abc?query=foo#fragment',
+                    'QUERY_STRING' => 'query=foo',
                     default => "Unexpected key: $key"
                 }
             );
@@ -154,7 +159,7 @@ final class SpecTest extends TestCase
             ->with('SERVER_PORT')
             ->willReturn(8080);
 
-        $serverParams->expects($this->exactly(4))
+        $serverParams->expects($this->exactly(5))
             ->method('has')
             ->willReturnCallback(
                 fn (string $key) => match ($key) {
@@ -162,6 +167,7 @@ final class SpecTest extends TestCase
                     'SERVER_NAME' => true,
                     'SERVER_PORT' => true,
                     'REQUEST_URI' => true,
+                    'QUERY_STRING' => true,
                     default => false
                 }
             );
@@ -188,13 +194,14 @@ final class SpecTest extends TestCase
             ->onlyMethods(['asString', 'has', 'asInt'])
             ->getMock();
 
-        $serverParams->expects($this->exactly(3))
+        $serverParams->expects($this->exactly(4))
             ->method('asString')
             ->willReturnCallback(
                 fn (string $key) => match ($key) {
                     'HTTPS' => 'on',
                     'SERVER_ADDR' => '192.168.0.1',
                     'REQUEST_URI' => '/path/abc?query=foo#fragment',
+                    'QUERY_STRING' => 'query=foo',
                     default => "Unexpected key: $key"
                 }
             );
@@ -204,7 +211,7 @@ final class SpecTest extends TestCase
             ->with('SERVER_PORT')
             ->willReturn(8080);
 
-        $serverParams->expects($this->exactly(5))
+        $serverParams->expects($this->exactly(6))
             ->method('has')
             ->willReturnCallback(
                 fn (string $key) => match ($key) {
@@ -213,6 +220,7 @@ final class SpecTest extends TestCase
                     'SERVER_ADDR' => true,
                     'SERVER_PORT' => true,
                     'REQUEST_URI' => true,
+                    'QUERY_STRING' => true,
                     default => false
                 }
             );
