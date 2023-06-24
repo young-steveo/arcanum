@@ -6,11 +6,12 @@ namespace Arcanum\Test\Hyper\Files;
 
 use Arcanum\Hyper\Files\UploadedFile;
 use Arcanum\Hyper\Files\Error;
+use Arcanum\Hyper\Files\InvalidFile;
+use Arcanum\Hyper\Files\Normalizer;
 use Arcanum\Flow\River\StreamResource;
 use Arcanum\Flow\River\Stream;
 use Arcanum\Flow\River\LazyResource;
 use Arcanum\Flow\River\Bank;
-use Arcanum\Hyper\Files\InvalidFile;
 use Arcanum\Gather\Registry;
 use Psr\Http\Message\StreamInterface;
 use PHPUnit\Framework\TestCase;
@@ -18,6 +19,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 
 #[CoversClass(UploadedFile::class)]
+#[CoversClass(Normalizer::class)]
 #[UsesClass(Error::class)]
 #[UsesClass(Stream::class)]
 #[UsesClass(StreamResource::class)]
@@ -186,7 +188,7 @@ final class UploadedFileTest extends TestCase
         ];
 
         // Act
-        $result = UploadedFile::fromSpec(
+        $result = Normalizer::fromSpec(
             tmpName: $files['avatar']['tmp_name'],
             size: $files['avatar']['size'],
             error: $files['avatar']['error'],
@@ -196,26 +198,6 @@ final class UploadedFileTest extends TestCase
 
         // Assert
         $this->assertInstanceOf(UploadedFile::class, $result);
-    }
-
-    public function testFromSpecThrowsInvalidFileIfTmpNameIsNotStringOrArray(): void
-    {
-        // Arrange
-        $files = [
-            'avatar' => [
-                'tmp_name' => null,
-                'name' => 'my-avatar.png',
-                'size' => 90996,
-                'type' => 'image/png',
-                'error' => 0,
-            ]
-        ];
-
-        // Assert
-        $this->expectException(InvalidFile::class);
-
-        // Act
-        UploadedFile::fromSpec($files['avatar']);
     }
 
     public function testMoveToThrowsInvalidFileIfTargetPathIsEmpty(): void

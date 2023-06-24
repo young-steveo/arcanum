@@ -55,7 +55,7 @@ final class UploadedFiles
         foreach ($files as $key => $value) {
             $normalized[$key] = match (true) {
                 $value instanceof UploadedFileInterface => $value,
-                is_array($value) && isset($value['tmp_name']) => UploadedFile::fromSpec(
+                is_array($value) && isset($value['tmp_name']) => Normalizer::fromSpec(
                     tmpName: $value['tmp_name'],
                     error: $value['error'] ?? null,
                     size: $value['size'] ?? null,

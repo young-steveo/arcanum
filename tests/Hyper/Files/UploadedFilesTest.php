@@ -7,12 +7,14 @@ namespace Arcanum\Test\Hyper\Files;
 use Arcanum\Hyper\Files\UploadedFile;
 use Arcanum\Hyper\Files\UploadedFiles;
 use Arcanum\Hyper\Files\Error;
+use Arcanum\Hyper\Files\Normalizer;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 
 #[CoversClass(UploadedFiles::class)]
 #[CoversClass(UploadedFile::class)]
+#[CoversClass(Normalizer::class)]
 #[UsesClass(Error::class)]
 final class UploadedFilesTest extends TestCase
 {
