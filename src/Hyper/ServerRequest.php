@@ -48,11 +48,11 @@ class ServerRequest implements ServerRequestInterface, \Stringable
     {
 
         $serverParams = new Registry($_SERVER);
-        $method = RequestMethod::fromString($serverParams->asString('REQUEST_METHOD', 'GET'));
+        $method = RequestMethod::from($serverParams->asString('REQUEST_METHOD', 'GET'));
         $headers = new Headers(getallheaders());
         $uri = Spec::fromServerParams($serverParams);
         $body = CachingStream::fromStream(new Stream(LazyResource::for('php://input', 'r+')));
-        $protocolVersion = Version::fromString(
+        $protocolVersion = Version::from(
             str_replace('HTTP/', '', $serverParams->asString('SERVER_PROTOCOL', '1.1'))
         );
 

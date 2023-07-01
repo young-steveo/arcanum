@@ -15,20 +15,4 @@ enum RequestMethod: string
     case OPTIONS = 'OPTIONS';
     case TRACE = 'TRACE';
     case PATCH = 'PATCH';
-
-    public static function fromString(string $name): static
-    {
-        return match (strtoupper($name)) {
-            'GET' => self::GET,
-            'HEAD' => self::HEAD,
-            'POST' => self::POST,
-            'PUT' => self::PUT,
-            'DELETE' => self::DELETE,
-            'CONNECT' => self::CONNECT,
-            'OPTIONS' => self::OPTIONS,
-            'TRACE' => self::TRACE,
-            'PATCH' => self::PATCH,
-            default => throw new \InvalidArgumentException("Invalid request method: $name"),
-        };
-    }
 }

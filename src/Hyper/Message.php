@@ -30,7 +30,7 @@ class Message implements MessageInterface
     public function withProtocolVersion(string $version): MessageInterface
     {
         $request = clone $this;
-        $request->protocolVersion = Version::fromString($version);
+        $request->protocolVersion = Version::from($version);
         return $request;
     }
 

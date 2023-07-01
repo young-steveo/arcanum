@@ -104,7 +104,7 @@ class Request implements RequestInterface, \Stringable
     public function withMethod(string $method): RequestInterface
     {
         $request = clone $this;
-        $request->method = RequestMethod::fromString($method);
+        $request->method = RequestMethod::from($method);
         return $request;
     }
 

@@ -19,18 +19,11 @@ final class VersionTest extends TestCase
         $this->assertSame('2.0', Version::v20->value);
     }
 
-    public function testFromString(): void
+    public function testFrom(): void
     {
-        $this->assertSame(Version::v09, Version::fromString('0.9'));
-        $this->assertSame(Version::v10, Version::fromString('1.0'));
-        $this->assertSame(Version::v11, Version::fromString('1.1'));
-        $this->assertSame(Version::v20, Version::fromString('2.0'));
-    }
-
-    public function testFromStringThrowsInvalidArgumentException(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid HTTP version');
-        Version::fromString('FOO');
+        $this->assertSame(Version::v09, Version::from('0.9'));
+        $this->assertSame(Version::v10, Version::from('1.0'));
+        $this->assertSame(Version::v11, Version::from('1.1'));
+        $this->assertSame(Version::v20, Version::from('2.0'));
     }
 }

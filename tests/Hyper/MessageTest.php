@@ -28,7 +28,7 @@ final class MessageTest extends TestCase
         $body = $this->getMockBuilder(StreamInterface::class)
             ->getMock();
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $version = $message->getProtocolVersion();
@@ -49,7 +49,7 @@ final class MessageTest extends TestCase
         $body = $this->getMockBuilder(StreamInterface::class)
             ->getMock();
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $newMessage = $message->withProtocolVersion('2.0');
@@ -75,7 +75,7 @@ final class MessageTest extends TestCase
             ->method('toArray')
             ->willReturn(['foo' => ['bar']]);
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $result = $message->getHeaders();
@@ -101,7 +101,7 @@ final class MessageTest extends TestCase
             ->with('foo')
             ->willReturn(['bar']);
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $result = $message->getHeader('foo');
@@ -127,7 +127,7 @@ final class MessageTest extends TestCase
             ->with('foo')
             ->willReturn(['bar', 'baz']);
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $result = $message->getHeaderLine('foo');
@@ -153,7 +153,7 @@ final class MessageTest extends TestCase
             ->with('foo')
             ->willReturn(true);
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $result = $message->hasHeader('foo');
@@ -179,7 +179,7 @@ final class MessageTest extends TestCase
             ->with('foo', ['bar'])
             ->willReturnSelf();
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $newMessage = $message->withHeader('foo', 'bar');
@@ -221,7 +221,7 @@ final class MessageTest extends TestCase
                 }
             });
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $newMessage = $message->withAddedHeader('foo', 'bar');
@@ -248,7 +248,7 @@ final class MessageTest extends TestCase
             ->with('foo')
             ->willReturnSelf();
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $newMessage = $message->withoutHeader('foo');
@@ -269,7 +269,7 @@ final class MessageTest extends TestCase
         $body = $this->getMockBuilder(StreamInterface::class)
             ->getMock();
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $result = $message->getBody();
@@ -290,7 +290,7 @@ final class MessageTest extends TestCase
         $body = $this->getMockBuilder(StreamInterface::class)
             ->getMock();
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         /** @var StreamInterface&\PHPUnit\Framework\MockObject\MockObject */
         $newBody = $this->getMockBuilder(StreamInterface::class)
@@ -317,7 +317,7 @@ final class MessageTest extends TestCase
         $body = $this->getMockBuilder(StreamInterface::class)
             ->getMock();
 
-        $message = new Message($headers, $body, Version::fromString('1.1'));
+        $message = new Message($headers, $body, Version::from('1.1'));
 
         // Act
         $newMessage = $message->withBody($body);

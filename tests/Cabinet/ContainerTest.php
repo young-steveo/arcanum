@@ -73,10 +73,8 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolveWith');
 
-        $resolver->expects($this->once())
-            ->method('resolve')
-            ->with(Fixture\DoesNotExist::class) /** @phpstan-ignore-line */
-            ->willThrowException(new UnresolvableClass());
+        $resolver->expects($this->never())
+            ->method('resolve');
 
         /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
         $collection = $this->getMockBuilder(Collection::class)
@@ -104,7 +102,7 @@ final class ContainerTest extends TestCase
         $container = new Container($resolver, $collection, $system);
 
         // Assert
-        $this->expectException(UnresolvableClass::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // Act
         $container[Fixture\DoesNotExist::class]; /** @phpstan-ignore-line */
@@ -319,11 +317,6 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolveWith');
 
-        $resolver->expects($this->once())
-            ->method('resolve')
-            ->with(Fixture\DoesNotExist::class) /** @phpstan-ignore-line */
-            ->willThrowException(new UnresolvableClass());
-
         /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
         $collection = $this->getMockBuilder(Collection::class)
             ->getMock();
@@ -350,7 +343,7 @@ final class ContainerTest extends TestCase
         $container = new Container($resolver, $collection, $system);
 
         // Assert
-        $this->expectException(UnresolvableClass::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // Act
         $container->get(Fixture\DoesNotExist::class); /** @phpstan-ignore-line */

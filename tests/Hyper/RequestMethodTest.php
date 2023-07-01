@@ -23,23 +23,16 @@ final class RequestMethodTest extends TestCase
         $this->assertSame('TRACE', RequestMethod::TRACE->value);
         $this->assertSame('PATCH', RequestMethod::PATCH->value);
     }
-    public function testFromString(): void
+    public function testFrom(): void
     {
-        $this->assertSame(RequestMethod::GET, RequestMethod::fromString('GET'));
-        $this->assertSame(RequestMethod::HEAD, RequestMethod::fromString('HEAD'));
-        $this->assertSame(RequestMethod::POST, RequestMethod::fromString('POST'));
-        $this->assertSame(RequestMethod::PUT, RequestMethod::fromString('PUT'));
-        $this->assertSame(RequestMethod::DELETE, RequestMethod::fromString('DELETE'));
-        $this->assertSame(RequestMethod::CONNECT, RequestMethod::fromString('CONNECT'));
-        $this->assertSame(RequestMethod::OPTIONS, RequestMethod::fromString('OPTIONS'));
-        $this->assertSame(RequestMethod::TRACE, RequestMethod::fromString('TRACE'));
-        $this->assertSame(RequestMethod::PATCH, RequestMethod::fromString('PATCH'));
-    }
-
-    public function testFromStringThrowsInvalidArgumentException(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid request method: FOO');
-        RequestMethod::fromString('FOO');
+        $this->assertSame(RequestMethod::GET, RequestMethod::from('GET'));
+        $this->assertSame(RequestMethod::HEAD, RequestMethod::from('HEAD'));
+        $this->assertSame(RequestMethod::POST, RequestMethod::from('POST'));
+        $this->assertSame(RequestMethod::PUT, RequestMethod::from('PUT'));
+        $this->assertSame(RequestMethod::DELETE, RequestMethod::from('DELETE'));
+        $this->assertSame(RequestMethod::CONNECT, RequestMethod::from('CONNECT'));
+        $this->assertSame(RequestMethod::OPTIONS, RequestMethod::from('OPTIONS'));
+        $this->assertSame(RequestMethod::TRACE, RequestMethod::from('TRACE'));
+        $this->assertSame(RequestMethod::PATCH, RequestMethod::from('PATCH'));
     }
 }

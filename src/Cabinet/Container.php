@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Arcanum\Cabinet;
 
-use Psr\Container\ContainerInterface;
 use Arcanum\Codex\ClassResolver;
 use Arcanum\Codex\Resolver;
 use Arcanum\Flow\Pipeline\System;
@@ -13,10 +12,7 @@ use Arcanum\Flow\Continuum\Collection;
 use Arcanum\Flow\Continuum\ContinuationCollection;
 use Arcanum\Flow\Continuum\Progression;
 
-/**
- * @implements \ArrayAccess<class-string, mixed>
- */
-class Container implements \ArrayAccess, ContainerInterface
+class Container implements Application
 {
     /**
      * ClassResolver used to build classes.
@@ -24,7 +20,7 @@ class Container implements \ArrayAccess, ContainerInterface
     protected ClassResolver $resolver;
 
     /**
-     * @var array<class-string, Provider>
+     * @var array<string, Provider>
      */
     protected array $providers = [];
 
@@ -54,13 +50,18 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * Register a service on the container.
      *
-     * @param class-string $serviceName
+     * @param string $serviceName
      * @param class-string|null $implementation
      */
     public function service(string $serviceName, string|null $implementation = null): void
     {
         if ($implementation === null) {
             $implementation = $serviceName;
+        }
+        if (!class_exists($implementation)) {
+            throw new \InvalidArgumentException(
+                "Cannot register service '$serviceName' with non-existent class '$implementation'"
+            );
         }
         $this->factory($serviceName, $this->simpleFactory($implementation));
     }
@@ -81,7 +82,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * Register a service factory on the container.
      *
-     * @param class-string $serviceName
+     * @param string $serviceName
      */
     public function factory(string $serviceName, \Closure $factory): void
     {
@@ -91,7 +92,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * Register a service provider on the container.
      *
-     * @param class-string $serviceName
+     * @param string $serviceName
      */
     public function provider(string $serviceName, Provider $provider): void
     {
@@ -101,7 +102,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * Register a service instance on the container.
      *
-     * @param class-string $serviceName
+     * @param string $serviceName
      */
     public function instance(string $serviceName, mixed $instance): void
     {
@@ -127,7 +128,7 @@ class Container implements \ArrayAccess, ContainerInterface
      * The container will create a new instance
      * of the service each time it is requested.
      *
-     * @param class-string $serviceName
+     * @param string $serviceName
      */
     public function prototypeFactory(string $serviceName, \Closure $factory): void
     {
@@ -140,7 +141,7 @@ class Container implements \ArrayAccess, ContainerInterface
      * Decorators are applied to the service when it is requested from the
      * container for the first time.
      *
-     * @param class-string $serviceName
+     * @param string $serviceName
      * @param callable(object): object $decorator
      */
     public function decorator(string $serviceName, callable $decorator): void
@@ -154,7 +155,7 @@ class Container implements \ArrayAccess, ContainerInterface
      * Middleware are applied to the service every time it is requested from
      * the container.
      *
-     * @param class-string $serviceName
+     * @param string $serviceName
      * @param Progression $middleware
      */
     public function middleware(string $serviceName, Progression $middleware): void
@@ -177,7 +178,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * offsetSet
      *
-     * @param class-string $offset
+     * @param string $offset
      */
     public function offsetSet($offset, $value): void
     {
@@ -190,7 +191,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * offsetExists
      *
-     * @param class-string $offset
+     * @param string $offset
      */
     public function offsetExists($offset): bool
     {
@@ -200,7 +201,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * offsetUnset
      *
-     * @param class-string $offset
+     * @param string $offset
      */
     public function offsetUnset($offset): void
     {
@@ -212,7 +213,7 @@ class Container implements \ArrayAccess, ContainerInterface
      *
      * This is where all the magic happens.
      *
-     * @param class-string $offset
+     * @param string $offset
      * @throws InvalidKey
      */
     public function offsetGet($offset): mixed
@@ -222,7 +223,16 @@ class Container implements \ArrayAccess, ContainerInterface
         }
 
         // Provide the instance.
-        $provider = $this->providers[$offset] ?? PrototypeProvider::fromFactory($this->simpleFactory($offset));
+        $provider = $this->providers[$offset] ?? null;
+
+        if ($provider === null) {
+            if (!class_exists($offset)) {
+                throw new \InvalidArgumentException(
+                    "Cannot resolve service '$offset' with non-existent class '$offset'"
+                );
+            }
+            $provider = PrototypeProvider::fromFactory($this->simpleFactory($offset));
+        }
 
         $instance = $provider($this);
 
@@ -236,7 +246,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * Apply decorators to the instance.
      *
-     * @param class-string $serviceName
+     * @param string $serviceName
      */
     protected function applyDecorators(string $serviceName, object $instance, Provider $provider): object
     {
@@ -257,7 +267,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * Get a service from the container.
      *
-     * @param class-string $id
+     * @param string $id
      */
     public function get(string $id): mixed
     {
@@ -267,7 +277,7 @@ class Container implements \ArrayAccess, ContainerInterface
     /**
      * Check if a service exists in the container.
      *
-     * @param class-string $id
+     * @param string $id
      */
     public function has(string $id): bool
     {

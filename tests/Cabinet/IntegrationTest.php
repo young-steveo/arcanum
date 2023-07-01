@@ -24,6 +24,8 @@ use Arcanum\Test\Flow\Continuum\Fixture\BasicProgression;
 #[UsesClass(\Arcanum\Flow\Continuum\Continuum::class)]
 #[UsesClass(\Arcanum\Flow\Continuum\StandardAdvancer::class)]
 #[UsesClass(\Arcanum\Flow\Continuum\ContinuationCollection::class)]
+#[UsesClass(\Arcanum\Codex\ClassNameResolver::class)]
+#[UsesClass(\Arcanum\Codex\Event\ClassRequested::class)]
 final class IntegrationTest extends TestCase
 {
     public function testDecorators(): void
@@ -151,5 +153,22 @@ final class IntegrationTest extends TestCase
         $this->assertSame($service, $result);
         $this->assertSame($service, $shouldBeSame);
         $this->assertSame(2, $count);
+    }
+
+    public function testServiceWithCustomName(): void
+    {
+        // Arrange
+        $container = new Container();
+
+        // Act
+        $container->service(
+            serviceName: 'custom',
+            implementation: Fixture\SimpleService::class
+        );
+
+        // Assert
+        $this->assertTrue($container->has('custom'));
+        $result = $container->get('custom');
+        $this->assertInstanceOf(Fixture\SimpleService::class, $result);
     }
 }

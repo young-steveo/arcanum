@@ -33,7 +33,7 @@ final class Normalizer
             ]);
         }
 
-        $error = Error::fromErrorCode((int)($error ?? \UPLOAD_ERR_OK));
+        $error = Error::from((int)($error ?? \UPLOAD_ERR_OK));
 
         /** @var string $tmpName */
         /** @var int|null $size */

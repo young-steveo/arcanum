@@ -11,17 +11,17 @@ use Arcanum\Hyper\Files\Error;
 #[CoversClass(Error::class)]
 final class ErrorTest extends TestCase
 {
-    public function testErrorFromErrorCode(): void
+    public function testErrorFrom(): void
     {
         // Arrange
-        $oka = Error::fromErrorCode(\UPLOAD_ERR_OK);
-        $ini = Error::fromErrorCode(\UPLOAD_ERR_INI_SIZE);
-        $for = Error::fromErrorCode(\UPLOAD_ERR_FORM_SIZE);
-        $par = Error::fromErrorCode(\UPLOAD_ERR_PARTIAL);
-        $fil = Error::fromErrorCode(\UPLOAD_ERR_NO_FILE);
-        $tmp = Error::fromErrorCode(\UPLOAD_ERR_NO_TMP_DIR);
-        $wri = Error::fromErrorCode(\UPLOAD_ERR_CANT_WRITE);
-        $ext = Error::fromErrorCode(\UPLOAD_ERR_EXTENSION);
+        $oka = Error::from(\UPLOAD_ERR_OK);
+        $ini = Error::from(\UPLOAD_ERR_INI_SIZE);
+        $for = Error::from(\UPLOAD_ERR_FORM_SIZE);
+        $par = Error::from(\UPLOAD_ERR_PARTIAL);
+        $fil = Error::from(\UPLOAD_ERR_NO_FILE);
+        $tmp = Error::from(\UPLOAD_ERR_NO_TMP_DIR);
+        $wri = Error::from(\UPLOAD_ERR_CANT_WRITE);
+        $ext = Error::from(\UPLOAD_ERR_EXTENSION);
 
         // Assert
         $this->assertEquals($oka->value, \UPLOAD_ERR_OK);
@@ -34,20 +34,11 @@ final class ErrorTest extends TestCase
         $this->assertEquals($ext->value, \UPLOAD_ERR_EXTENSION);
     }
 
-    public function testErrorFromErrorCodeThrowsIfCodeIsInvalid(): void
-    {
-        // Assert
-        $this->expectException(\InvalidArgumentException::class);
-
-        // Act
-        Error::fromErrorCode(-100);
-    }
-
     public function testIsOK(): void
     {
         // Arrange
-        $oka = Error::fromErrorCode(\UPLOAD_ERR_OK);
-        $ini = Error::fromErrorCode(\UPLOAD_ERR_INI_SIZE);
+        $oka = Error::from(\UPLOAD_ERR_OK);
+        $ini = Error::from(\UPLOAD_ERR_INI_SIZE);
 
         // Assert
         $this->assertTrue($oka->isOK());
