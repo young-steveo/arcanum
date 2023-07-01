@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Feature Requests & Community Discussions
+    url: https://github.com/arcanum-org/framework/discussions
+    about: "Drop us a line if you have a feature request or want to discuss something."
+  - name: Support & Help
+    url: https://github.com/arcanum-org/framework/discussions/categories/q-a
+    about: "If you have a question, ask the community for help here."
