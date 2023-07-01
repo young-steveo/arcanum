@@ -1,0 +1,2 @@
+## Getting Support
+Arcanum's GitHub issues aren't the right place for getting help or support. But don't worry, we've got you covered! Head over to the [Arcanum discussion board](https://github.com/arcanum-org/framework/discussions) for any questions you have or support you need. It's also the go-to spot for suggesting new features or discussing tweaks to improve Arcanum's existing functionalities.
