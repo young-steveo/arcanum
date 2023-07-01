@@ -1,19 +1,13 @@
-name: Bug Report
+name: Bug report
 description: "Let us know that something ain't right."
+title: "[Bug]: "
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to report a bug! 🐛
         Please fill out the information below to help us reproduce the issue and fix it.
-  - type: input
-    id: title
-    attributes:
-      label: Bug Title
-      description: A clear and concise title for the bug report.
-      placeholder: [Bug] XYZ doesn't work when the widgets are frumious.
-    validations:
-      required: true
   - type: input
     id: version
     attributes:
