@@ -8,15 +8,17 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use Arcanum\Test\Fixture;
-use Arcanum\Cabinet\Error;
+use Arcanum\Cabinet\InvalidKey;
 use Arcanum\Cabinet\Container;
 use Arcanum\Codex\Error\UnresolvableClass;
+use Arcanum\Flow\Continuum\Collection;
+use Arcanum\Flow\Pipeline\System;
 
 #[CoversClass(Container::class)]
 #[UsesClass(\Arcanum\Cabinet\SimpleProvider::class)]
 #[UsesClass(\Arcanum\Cabinet\PrototypeProvider::class)]
 #[UsesClass(UnresolvableClass::class)]
-#[UsesClass(Error\InvalidKey::class)]
+#[UsesClass(InvalidKey::class)]
 final class ContainerTest extends TestCase
 {
     public function testContainerImplementsArrayAccess(): void
@@ -33,7 +35,23 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var \Arcanum\Flow\Continuum\Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
 
         $service = new Fixture\SimpleService(new Fixture\SimpleDependency());
 
@@ -60,7 +78,30 @@ final class ContainerTest extends TestCase
             ->with(Fixture\DoesNotExist::class) /** @phpstan-ignore-line */
             ->willThrowException(new UnresolvableClass());
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->never())
+            ->method('send');
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('send');
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $container = new Container($resolver, $collection, $system);
 
         // Assert
         $this->expectException(UnresolvableClass::class);
@@ -83,7 +124,33 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('send');
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('send');
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->never())
+            ->method('pipeline');
+
+        $system->expects($this->never())
+            ->method('purge');
+
+        $container = new Container($resolver, $collection, $system);
         $container[Fixture\SimpleService::class] = new Fixture\SimpleService(new Fixture\SimpleDependency());
 
         // Act
@@ -107,10 +174,39 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->never())
+            ->method('send');
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->never())
+            ->method('pipeline');
+
+        $system->expects($this->never())
+            ->method('purge');
+
+        $system->expects($this->never())
+            ->method('send');
+
+        $container = new Container($resolver, $collection, $system);
 
         // Assert
-        $this->expectException(Error\InvalidKey::class);
+        $this->expectException(InvalidKey::class);
 
         // Act
         $container[0] = 'bar'; /** @phpstan-ignore-line */
@@ -130,10 +226,33 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->never())
+            ->method('send');
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->never())
+            ->method('send');
+
+        $container = new Container($resolver, $collection, $system);
 
         // Assert
-        $this->expectException(Error\InvalidKey::class);
+        $this->expectException(InvalidKey::class);
 
         // Act
         $container[0]; /** @phpstan-ignore-line */
@@ -153,7 +272,32 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
         $service = new Fixture\SimpleService(new Fixture\SimpleDependency());
         $container[Fixture\SimpleService::class] = $service;
 
@@ -180,7 +324,30 @@ final class ContainerTest extends TestCase
             ->with(Fixture\DoesNotExist::class) /** @phpstan-ignore-line */
             ->willThrowException(new UnresolvableClass());
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->never())
+            ->method('send');
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->never())
+            ->method('send');
+
+        $container = new Container($resolver, $collection, $system);
 
         // Assert
         $this->expectException(UnresolvableClass::class);
@@ -203,7 +370,30 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->never())
+            ->method('send');
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->never())
+            ->method('send');
+
+        $container = new Container($resolver, $collection, $system);
         $container[Fixture\SimpleService::class] = new Fixture\SimpleService(new Fixture\SimpleDependency());
 
         // Act
@@ -239,7 +429,32 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
 
         // Act
         $container->provider(Fixture\SimpleService::class, $provider);
@@ -265,7 +480,32 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
 
         // Act
         $container->factory(Fixture\SimpleService::class, fn() => $service);
@@ -291,7 +531,32 @@ final class ContainerTest extends TestCase
             ->with(Fixture\SimpleService::class)
             ->willReturn(new Fixture\SimpleService(new Fixture\SimpleDependency()));
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->exactly(2))
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->exactly(2))
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
         $container->service(Fixture\SimpleService::class);
 
         // Act
@@ -318,7 +583,32 @@ final class ContainerTest extends TestCase
             ->with(Fixture\SimpleService::class)
             ->willReturn(new Fixture\SimpleService(new Fixture\SimpleDependency()));
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
         $container->service(Fixture\SimpleService::class);
         $container->service(Fixture\SimpleDependency::class);
 
@@ -345,7 +635,32 @@ final class ContainerTest extends TestCase
             ->with(Fixture\SimpleService::class)
             ->willReturn(new Fixture\SimpleService(new Fixture\SimpleDependency()));
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
         $container->service(Fixture\SimpleService::class);
 
         // Act
@@ -369,7 +684,32 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
         $instance = new Fixture\SimpleService(new Fixture\SimpleDependency());
         $container->instance(Fixture\SimpleService::class, $instance);
 
@@ -398,7 +738,32 @@ final class ContainerTest extends TestCase
                 return new Fixture\SimpleService(new Fixture\SimpleDependency());
             });
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->exactly(2))
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->exactly(2))
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
         $container->prototype(Fixture\SimpleService::class);
 
         // Act
@@ -423,7 +788,26 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->exactly(2))
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->exactly(2))
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
         $container->prototypeFactory(
             serviceName: Fixture\SimpleService::class,
             factory: fn() => new Fixture\SimpleService(new Fixture\SimpleDependency())
@@ -453,7 +837,32 @@ final class ContainerTest extends TestCase
             ->with(Fixture\ConcreteService::class)
             ->willReturnCallback(fn() => new Fixture\ConcreteService());
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
         $container->service(Fixture\ServiceInterface::class, Fixture\ConcreteService::class);
 
         // Act
@@ -479,7 +888,32 @@ final class ContainerTest extends TestCase
         $resolver->expects($this->never())
             ->method('resolve');
 
-        $container = Container::fromResolver($resolver);
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
 
         $container->serviceWith(
             serviceName: Fixture\ServiceWithInterface::class,

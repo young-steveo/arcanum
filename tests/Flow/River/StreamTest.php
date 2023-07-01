@@ -14,6 +14,7 @@ use Arcanum\Flow\River\DetachedSource;
 use Arcanum\Flow\River\UnreadableStream;
 use Arcanum\Flow\River\UnseekableStream;
 use Arcanum\Flow\River\UnwritableStream;
+use Arcanum\Gather\Registry;
 
 #[CoversClass(Stream::class)]
 #[UsesClass(InvalidSource::class)]
@@ -21,6 +22,7 @@ use Arcanum\Flow\River\UnwritableStream;
 #[UsesClass(UnreadableStream::class)]
 #[UsesClass(UnseekableStream::class)]
 #[UsesClass(UnwritableStream::class)]
+#[UsesClass(Registry::class)]
 final class StreamTest extends TestCase
 {
     public function testNewStream(): void
@@ -341,7 +343,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Stream is detached');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -451,7 +453,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Stream is detached');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -562,7 +564,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Stream is detached');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -930,7 +932,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Cannot get metadata from a detached resource');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1033,7 +1035,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Cannot get contents from a detached resource');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1086,7 +1088,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(UnreadableStream::class);
-        $this->expectExceptionMessage('Cannot get contents from an unreadable resource');
+        $this->expectExceptionMessage('Cannot operate on a non-readable stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1189,6 +1191,60 @@ final class StreamTest extends TestCase
         $stream->getContents();
     }
 
+    public function testGetContentsThrowsUnreadableStreamIfStreamGetContentsThrowsAnything(): void
+    {
+        // Arrange
+        $this->expectException(UnreadableStream::class);
+        $this->expectExceptionMessage('Unreadable stream: Could not read stream');
+
+        /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
+        $resource = $this->getMockBuilder(StreamResource::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([
+                'isResource',
+                'streamGetMetaData',
+                'fclose',
+                'export',
+                'streamGetContents',
+            ])
+            ->getMock();
+
+        $resource->expects($this->exactly(2))
+            ->method('isResource')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('streamGetMetaData')
+            ->willReturn([
+                'timed_out' => false,
+                'blocked' => true,
+                'eof' => false,
+                'wrapper_type' => 'PHP',
+                'stream_type' => 'STDIO',
+                'mode' => 'r',
+                'unread_bytes' => 0,
+                'seekable' => true,
+                'uri' => 'php://stdin',
+            ]);
+
+        $resource->expects($this->once())
+            ->method('streamGetContents')
+            ->willThrowException(new \Exception('foo'));
+
+        $resource->expects($this->once())
+            ->method('fclose')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('export')
+            ->willReturn(fopen('php://stdin', 'r'));
+
+        $stream = new Stream($resource);
+
+        // Act
+        $stream->getContents();
+    }
+
     public function testToString(): void
     {
         // Arrange
@@ -1254,7 +1310,7 @@ final class StreamTest extends TestCase
     public function testToStringReturnsExceptionMessageIfGetContentsFails(): void
     {
         // Arrange
-        $expected = 'Unreadable stream: Cannot get contents from an unreadable resource';
+        $expected = 'Unreadable stream: Cannot operate on a non-readable stream';
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1331,7 +1387,7 @@ final class StreamTest extends TestCase
             ->method('isResource')
             ->willReturn(true);
 
-        $resource->expects($this->once())
+        $resource->expects($this->exactly(2))
             ->method('streamGetMetaData')
             ->willReturn([
                 'timed_out' => false,
@@ -1406,7 +1462,7 @@ final class StreamTest extends TestCase
             ->method('isResource')
             ->willReturn(true);
 
-        $resource->expects($this->once())
+        $resource->expects($this->exactly(2))
             ->method('streamGetMetaData')
             ->willReturn([
                 'timed_out' => false,
@@ -1463,7 +1519,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Cannot get the size of a detached stream');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1575,7 +1631,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(UnreadableStream::class);
-        $this->expectExceptionMessage('Unable to read from stream');
+        $this->expectExceptionMessage('Unreadable stream: Could not read stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1791,7 +1847,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(UnreadableStream::class);
-        $this->expectExceptionMessage('Stream is not readable');
+        $this->expectExceptionMessage('Cannot operate on a non-readable stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -1844,7 +1900,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Stream is detached');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
         $resource = $this->getMockBuilder(StreamResource::class)
@@ -2123,7 +2179,7 @@ final class StreamTest extends TestCase
     {
         // Arrange
         $this->expectException(DetachedSource::class);
-        $this->expectExceptionMessage('Cannot write to a detached stream');
+        $this->expectExceptionMessage('Detached source: Cannot operate on a detached stream');
 
         $data = 'Hello World!';
 
@@ -2172,5 +2228,127 @@ final class StreamTest extends TestCase
         // Act
         $stream->detach();
         $stream->write($data);
+    }
+
+    public function testCopyTo(): void
+    {
+        // Arrange
+        /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
+        $resource = $this->getMockBuilder(StreamResource::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['isResource', 'streamGetMetaData', 'fclose', 'export', 'feof', 'fread'])
+            ->getMock();
+
+        $resource->expects($this->exactly(2))
+            ->method('isResource')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('streamGetMetaData')
+            ->willReturn([
+                'timed_out' => false,
+                'blocked' => true,
+                'eof' => false,
+                'wrapper_type' => 'PHP',
+                'stream_type' => 'MEMORY',
+                'mode' => 'w+b',
+                'unread_bytes' => 0,
+                'seekable' => true,
+                'uri' => 'php://memory',
+            ]);
+
+        $resource->expects($this->exactly(2))
+            ->method('feof')
+            ->willReturnOnConsecutiveCalls(false, true);
+
+        $resource->expects($this->once())
+            ->method('fread')
+            ->with(8192)
+            ->willReturn('Hello World!');
+
+        $resource->expects($this->once())
+            ->method('fclose')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('export')
+            ->willReturn(fopen('php://memory', 'r+'));
+
+        /** @var Stream&\PHPUnit\Framework\MockObject\MockObject */
+        $target = $this->getMockBuilder(Stream::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['write'])
+            ->getMock();
+
+        $target->expects($this->once())
+            ->method('write')
+            ->with('Hello World!')
+            ->willReturn(12);
+
+        $stream = new Stream($resource);
+
+        // Act
+        $stream->copyTo($target);
+    }
+
+    public function testCopyToBreaksSilentlyIfTargetFailsWrite(): void
+    {
+        // Arrange
+        /** @var StreamResource&\PHPUnit\Framework\MockObject\MockObject */
+        $resource = $this->getMockBuilder(StreamResource::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['isResource', 'streamGetMetaData', 'fclose', 'export', 'feof', 'fread'])
+            ->getMock();
+
+        $resource->expects($this->exactly(2))
+            ->method('isResource')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('streamGetMetaData')
+            ->willReturn([
+                'timed_out' => false,
+                'blocked' => true,
+                'eof' => false,
+                'wrapper_type' => 'PHP',
+                'stream_type' => 'MEMORY',
+                'mode' => 'w+b',
+                'unread_bytes' => 0,
+                'seekable' => true,
+                'uri' => 'php://memory',
+            ]);
+
+        $resource->expects($this->once())
+            ->method('feof')
+            ->willReturn(false);
+
+        $resource->expects($this->once())
+            ->method('fread')
+            ->with(8192)
+            ->willReturn('Hello World!');
+
+        $resource->expects($this->once())
+            ->method('fclose')
+            ->willReturn(true);
+
+        $resource->expects($this->once())
+            ->method('export')
+            ->willReturn(fopen('php://memory', 'r+'));
+
+        /** @var Stream&\PHPUnit\Framework\MockObject\MockObject */
+        $target = $this->getMockBuilder(Stream::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['write'])
+            ->getMock();
+
+        $target->expects($this->once())
+            ->method('write')
+            ->with('Hello World!')
+            ->willReturn(0);
+
+        $stream = new Stream($resource);
+
+        // Act
+        $stream->copyTo($target);
     }
 }

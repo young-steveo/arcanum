@@ -1,4 +1,5 @@
 .DS_Store
+.metrics
 
 /vendor/
 /tests/.phpunit.cache

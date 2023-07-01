@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Arcanum\Flow\River;
 
 use Psr\Http\Message\StreamInterface;
+use Arcanum\Gather\Registry;
 
 /**
  * @phpstan-type MetaDataKey 'timed_out'|'blocked'|'eof'|'unread_bytes'|'stream_type'|'wrapper_type'|'wrapper_data'|'mode'|'seekable'|'uri'|'crypto'
@@ -27,34 +28,38 @@ use Psr\Http\Message\StreamInterface;
  *   }
  * }
  */
-class Stream implements StreamInterface, \Stringable
+class Stream implements Copyable, \Stringable
 {
-    private const READABLE_MODES = '/r|a\+|ab\+|w\+|wb\+|x\+|xb\+|c\+|cb\+/';
-    private const WRITABLE_MODES = '/a|w|r\+|rb\+|rw|x|c/';
-
-    protected bool $seekable;
-    protected bool $readable;
-    protected bool $writable;
-    protected string $uri;
+    /**
+     * Registry of seekable, readable, and writable properties.
+     */
+    protected Registry $properties;
 
     /**
      * Construct a Stream.
      */
     public function __construct(
-        protected StreamResource $source,
+        protected ResourceWrapper $source,
         protected int|null $size = null,
     ) {
         if (!$this->source->isResource()) {
             throw new InvalidSource('Stream source must be a live resource');
         }
 
-        $meta = $this->getMetadata();
-        if (is_array($meta)) {
-            $this->seekable = $meta['seekable'];
-            $this->readable = (bool) preg_match(self::READABLE_MODES, $meta['mode']);
-            $this->writable = (bool) preg_match(self::WRITABLE_MODES, $meta['mode']);
-            $this->uri = $meta['uri'];
-        }
+        $meta = $this->source->streamGetMetaData();
+        $this->setProperties(
+            seekable: $meta['seekable'],
+            readable: (bool) preg_match('/r|a\+|ab\+|w\+|wb\+|x\+|xb\+|c\+|cb\+/', $meta['mode']),
+            writable: (bool) preg_match('/a|w|r\+|rb\+|rw|x|c/', $meta['mode'])
+        );
+    }
+
+    /**
+     * Set the stream properties.
+     */
+    protected function setProperties(bool $seekable, bool $readable, bool $writable): void
+    {
+        $this->properties = new Registry(compact('seekable', 'readable', 'writable'));
     }
 
     /**
@@ -71,7 +76,7 @@ class Stream implements StreamInterface, \Stringable
     public function __toString(): string
     {
         try {
-            if ($this->seekable) {
+            if ($this->isSeekable()) {
                 $this->rewind();
             }
             return $this->getContents();
@@ -85,7 +90,7 @@ class Stream implements StreamInterface, \Stringable
      */
     public function isReadable(): bool
     {
-        return $this->readable;
+        return $this->properties->asBool('readable');
     }
 
     /**
@@ -93,7 +98,7 @@ class Stream implements StreamInterface, \Stringable
      */
     public function isWritable(): bool
     {
-        return $this->writable;
+        return $this->properties->asBool('writable');
     }
 
     /**
@@ -101,7 +106,7 @@ class Stream implements StreamInterface, \Stringable
      */
     public function isSeekable(): bool
     {
-        return $this->seekable;
+        return $this->properties->asBool('seekable');
     }
 
     /**
@@ -109,9 +114,7 @@ class Stream implements StreamInterface, \Stringable
      */
     public function eof(): bool
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Stream is detached');
-        }
+        $this->guardDetachedSource();
 
         return $this->source->feof();
     }
@@ -121,9 +124,7 @@ class Stream implements StreamInterface, \Stringable
      */
     public function tell(): int
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Stream is detached');
-        }
+        $this->guardDetachedSource();
 
         $position = $this->source->ftell();
         if ($position === false) {
@@ -141,13 +142,14 @@ class Stream implements StreamInterface, \Stringable
         $this->seek(0);
     }
 
+    /**
+     * Seek the stream to a new position.
+     */
     public function seek(int $offset, int $whence = SEEK_SET): void
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Stream is detached');
-        }
+        $this->guardDetachedSource();
 
-        if (!$this->seekable) {
+        if (!$this->isSeekable()) {
             throw new UnseekableStream('Cannot seek a non-seekable stream');
         }
 
@@ -155,7 +157,6 @@ class Stream implements StreamInterface, \Stringable
             throw new UnseekableStream("Unable to seek to stream position $offset with whence $whence");
         }
     }
-
 
     /**
      * Close the stream and any underlying resources.
@@ -191,11 +192,7 @@ class Stream implements StreamInterface, \Stringable
         $source = $this->source;
         unset($this->source);
         $this->size = 0;
-        $this->seekable = false;
-        $this->readable = false;
-        $this->writable = false;
-        $this->uri = '';
-
+        $this->setProperties(seekable: false, readable: false, writable: false);
         return $source->export();
     }
 
@@ -210,51 +207,50 @@ class Stream implements StreamInterface, \Stringable
      */
     public function getMetadata(string|null $key = null): mixed
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Cannot get metadata from a detached resource');
-        }
-
+        $this->guardDetachedSource();
         $meta = $this->source->streamGetMetaData();
-        if (!$key) {
-            return $meta;
-        }
-
-        return $meta[$key] ?? null;
+        return !$key ? $meta : ($meta[$key] ?? null);
     }
 
+    /**
+     * Get the stream contents as a string.
+     */
     public function getContents(): string
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Cannot get contents from a detached resource');
-        }
+        $this->guardReadable();
 
-        if (!$this->readable) {
-            throw new UnreadableStream('Cannot get contents from an unreadable resource');
-        }
         try {
             $contents = $this->source->streamGetContents();
-            if ($contents === false) {
-                throw new \RuntimeException('Could not read stream');
-            }
         } catch (\Throwable $e) {
             throw new UnreadableStream('Could not read stream', 0, $e);
         }
-        return $contents;
+        return $this->checkReadData($contents);
     }
 
+    /**
+     * If data read from the source is false, throw an exception.
+     */
+    protected function checkReadData(string|false $data): string
+    {
+        if ($data === false) {
+            throw new UnreadableStream('Could not read stream');
+        }
+        return $data;
+    }
+
+    /**
+     * Get the size of the stream if known.
+     */
     public function getSize(): ?int
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Cannot get the size of a detached stream');
-        }
+        $this->guardDetachedSource();
 
         if ($this->size) {
             return $this->size;
         }
 
-        if ($this->uri) {
-            $this->source->clearstatcache(true, $this->uri);
-        }
+        $meta = $this->source->streamGetMetaData();
+        $this->source->clearstatcache(true, $meta['uri']);
 
         $stats = $this->source->fstat();
         if ($stats && $stats['size'] !== false) {
@@ -270,32 +266,18 @@ class Stream implements StreamInterface, \Stringable
      */
     public function read(int $length): string
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Stream is detached');
-        }
-
-        if (!$this->readable) {
-            throw new UnreadableStream('Stream is not readable');
-        }
+        $this->guardReadable();
 
         if ($length < 0) {
             throw new \InvalidArgumentException('Length to read must be greater than or equal to zero');
         }
 
-        if ($length === 0) {
-            return '';
-        }
-
         try {
-            $data = $this->source->fread($length);
+            $data = $length ? $this->source->fread($length) : '';
         } catch (\Throwable $e) {
             throw new UnreadableStream('Unable to read from stream', 0, $e);
         }
-        if ($data === false) {
-            throw new UnreadableStream('Unable to read from stream');
-        }
-
-        return $data;
+        return $this->checkReadData($data);
     }
 
     /**
@@ -303,11 +285,9 @@ class Stream implements StreamInterface, \Stringable
      */
     public function write(string $string): int
     {
-        if (!isset($this->source)) {
-            throw new DetachedSource('Cannot write to a detached stream');
-        }
+        $this->guardDetachedSource();
 
-        if (!$this->writable) {
+        if (!$this->isWritable()) {
             throw new UnwritableStream('Cannot write to a non-writable stream');
         }
 
@@ -323,5 +303,40 @@ class Stream implements StreamInterface, \Stringable
         }
 
         return $result;
+    }
+
+    /**
+     * Throw an exception if the stream is detached.
+     */
+    protected function guardDetachedSource(): void
+    {
+        if (!isset($this->source)) {
+            throw new DetachedSource('Cannot operate on a detached stream');
+        }
+    }
+
+    /**
+     * Throw an exception if the stream is not readable.
+     */
+    protected function guardReadable(): void
+    {
+        $this->guardDetachedSource();
+
+        if (!$this->isReadable()) {
+            throw new UnreadableStream('Cannot operate on a non-readable stream');
+        }
+    }
+
+    /**
+     * Copy the stream to another stream.
+     */
+    public function copyTo(StreamInterface $output): void
+    {
+        $bytes = 8192;
+        while (!$this->eof()) {
+            if (!$output->write($this->read($bytes))) {
+                break;
+            }
+        }
     }
 }

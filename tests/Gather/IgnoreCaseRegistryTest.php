@@ -17,7 +17,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testHasAndGet(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
+        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
 
         // Act
         $has = $registry->has('fOo');
@@ -33,7 +33,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetSetViaArrayAccess(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
+        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
 
         // Act
         $set = isset($registry['fOo']);
@@ -51,7 +51,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testOffsetSetGetExistsUnset(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
+        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
 
         // Act
         $set = $registry->offsetExists('fOo');
@@ -69,7 +69,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testNewKeysArePreservedIfNotAddedByConstructor(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::create();
+        $registry = new IgnoreCaseRegistry();
 
         // Act
         $registry['baz'] = 'qux';
@@ -82,7 +82,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetString(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::fromData(['foo' => '1b1a@1r1']);
+        $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asString('FOo');
@@ -94,7 +94,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetInt(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::fromData(['foo' => '1b1a@1r1']);
+        $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asInt('FoO');
@@ -106,7 +106,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetFloat(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::fromData(['foo' => '1b1a@1r1']);
+        $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asFloat('fOO');
@@ -118,7 +118,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetBool(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::fromData(['foo' => '1b1a@1r1']);
+        $registry = new IgnoreCaseRegistry(['foo' => '1b1a@1r1']);
 
         // Act
         $get = $registry->asBool('foO');
@@ -130,7 +130,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testSet(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::create();
+        $registry = new IgnoreCaseRegistry();
 
         // Act
         $registry->set('foo', 'bar');
@@ -143,7 +143,7 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetKey(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
+        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
 
         // Act
         $get = $registry->getKey('fOo');
@@ -155,12 +155,37 @@ final class IgnoreCaseRegistryTest extends TestCase
     public function testGetKeyNotSet(): void
     {
         // Arrange
-        $registry = IgnoreCaseRegistry::fromData(['foo' => 'bar']);
+        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
 
         // Act
         $get = $registry->getKey('nope');
 
         // Assert
         $this->assertSame('nope', $get);
+    }
+
+    public function testSerializeUnserialize(): void
+    {
+        // Arrange
+        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
+
+        // Act
+        $serialized = serialize($registry);
+        $unserialized = unserialize($serialized);
+
+        // Assert
+        $this->assertEquals($registry, $unserialized);
+    }
+
+    public function testToArray(): void
+    {
+        // Arrange
+        $registry = new IgnoreCaseRegistry(['foo' => 'bar']);
+
+        // Act
+        $array = $registry->toArray();
+
+        // Assert
+        $this->assertSame(['foo' => 'bar'], $array);
     }
 }

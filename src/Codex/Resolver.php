@@ -81,15 +81,24 @@ class Resolver implements ClassResolver
         }
 
         // Otherwise, we need to resolve the parameters as dependencies.
+        $dependencies = $this->resolveParameters($parameters);
+
+        /** @var T */
+        $instance = $image->newInstanceArgs($dependencies);
+        return $this->finalize($instance);
+    }
+
+    /**
+     * @param \ReflectionParameter[] $parameters
+     * @return mixed[]
+     */
+    protected function resolveParameters(array $parameters): array
+    {
         $dependencies = [];
         foreach ($parameters as $parameter) {
-            $dependencyName = $this->getClassName($parameter);
+            $dependencyName = ClassNameResolver::resolve($parameter);
             if ($dependencyName === null) {
-                $type = $parameter->getType();
-                if ($type !== null && $type instanceof \ReflectionUnionType) {
-                    throw new Error\UnresolvableUnionType(message: $className);
-                }
-                $dependency = $this->resolvePrimitive($parameter);
+                $dependency = PrimitiveResolver::resolve($parameter);
             } else {
                 $dependency = $this->resolveClass($parameter, $dependencyName);
             }
@@ -103,9 +112,7 @@ class Resolver implements ClassResolver
             }
         }
 
-        /** @var T */
-        $instance = $image->newInstanceArgs($dependencies);
-        return $this->finalize($instance);
+        return $dependencies;
     }
 
     /**
@@ -163,70 +170,6 @@ class Resolver implements ClassResolver
     }
 
     /**
-     * Get the class name of the parameter, or null if it is not a class.
-     *
-     * @return class-string|null
-     */
-    protected function getClassName(\ReflectionParameter $parameter): string|null
-    {
-        $type = $parameter->getType();
-
-        // if it has no type, we cannot get its name.
-        if ($type === null) {
-            return null;
-        }
-
-        // if it is not a named type, we cannot get its name.
-        if (!$type instanceof \ReflectionNamedType) {
-            return null;
-        }
-
-        // if it is a built-in type, we cannot get its name.
-        if ($type->isBuiltin()) {
-            return null;
-        }
-
-        $name = $type->getName();
-
-        /**
-         * $class here cannot be null because we already checked
-         * that it is not a built-in type.
-         *
-         * @var \ReflectionClass<object> $class
-         */
-        $class = $parameter->getDeclaringClass();
-
-        if ($name === 'parent') {
-
-            /**
-             * $parent here cannot be false because we already checked
-             * if the parent keyword is used without extending anything,
-             * it would be a fatal error.
-             *
-             * @var \ReflectionClass<object> $parent
-             */
-            $parent = $class->getParentClass();
-            return $parent->getName();
-        }
-
-        /** @var class-string $name */
-        return $name;
-    }
-
-    protected function resolvePrimitive(\ReflectionParameter $parameter): mixed
-    {
-        if ($parameter->isDefaultValueAvailable()) {
-            return $parameter->getDefaultValue();
-        }
-
-        if ($parameter->isVariadic()) {
-            return [];
-        }
-
-        throw new Error\UnresolvablePrimitive(message: $parameter->getName());
-    }
-
-    /**
      * @param class-string $name
      */
     protected function resolveClass(\ReflectionParameter $parameter, string $name): object
@@ -274,6 +217,9 @@ class Resolver implements ClassResolver
         return $instance;
     }
 
+    /**
+     * Notify listeners of an event.
+     */
     protected function notify(CodexEvent $event): void
     {
         foreach ($this->eventDispatchers as $dispatcher) {

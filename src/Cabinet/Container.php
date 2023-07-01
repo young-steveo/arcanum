@@ -7,8 +7,10 @@ namespace Arcanum\Cabinet;
 use Psr\Container\ContainerInterface;
 use Arcanum\Codex\ClassResolver;
 use Arcanum\Codex\Resolver;
-use Arcanum\Flow\Pipeline\Pipeline;
-use Arcanum\Flow\Continuum\Continuum;
+use Arcanum\Flow\Pipeline\System;
+use Arcanum\Flow\Pipeline\PipelayerSystem;
+use Arcanum\Flow\Continuum\Collection;
+use Arcanum\Flow\Continuum\ContinuationCollection;
 use Arcanum\Flow\Continuum\Progression;
 
 /**
@@ -27,37 +29,26 @@ class Container implements \ArrayAccess, ContainerInterface
     protected array $providers = [];
 
     /**
-     * @var array<class-string, \Arcanum\Flow\Pipeline\Pipelayer>
+     * @var \Arcanum\Flow\Pipeline\System
      */
-    protected array $decorators = [];
+    protected System $decorators;
 
     /**
-     * @var array<class-string, \Arcanum\Flow\Continuum\Continuation>
+     * @var \Arcanum\Flow\Continuum\Collection
      */
-    protected array $middlewares = [];
+    protected Collection $middleware;
 
     /**
      * Container uses a resolver to instantiate services.
      */
-    protected function __construct(ClassResolver $resolver = null)
-    {
+    public function __construct(
+        ClassResolver $resolver = null,
+        Collection $middleware = null,
+        System $decorators = null
+    ) {
         $this->resolver = $resolver ?? Resolver::forContainer($this);
-    }
-
-    /**
-     * Create a new container.
-     */
-    public static function create(): self
-    {
-        return new self();
-    }
-
-    /**
-     * Create a new container from a resolver.
-     */
-    public static function fromResolver(ClassResolver $resolver): self
-    {
-        return new self($resolver);
+        $this->middleware = $middleware ?? new ContinuationCollection();
+        $this->decorators = $decorators ?? new PipelayerSystem();
     }
 
     /**
@@ -154,11 +145,7 @@ class Container implements \ArrayAccess, ContainerInterface
      */
     public function decorator(string $serviceName, callable $decorator): void
     {
-        if (!isset($this->decorators[$serviceName])) {
-            $this->decorators[$serviceName] = new Pipeline();
-        }
-
-        $this->decorators[$serviceName] = $this->decorators[$serviceName]->pipe($decorator);
+        $this->decorators->pipe($serviceName, $decorator);
     }
 
     /**
@@ -172,11 +159,7 @@ class Container implements \ArrayAccess, ContainerInterface
      */
     public function middleware(string $serviceName, Progression $middleware): void
     {
-        if (!isset($this->middlewares[$serviceName])) {
-            $this->middlewares[$serviceName] = new Continuum();
-        }
-
-        $this->middlewares[$serviceName] = $this->middlewares[$serviceName]->add($middleware);
+        $this->middleware->add($serviceName, $middleware);
     }
 
     /**
@@ -199,7 +182,7 @@ class Container implements \ArrayAccess, ContainerInterface
     public function offsetSet($offset, $value): void
     {
         if (!is_string($offset)) {
-            throw new Error\InvalidKey("Invalid key type: " . gettype($offset));
+            throw new InvalidKey("Invalid key type: " . gettype($offset));
         }
         $this->providers[$offset] = SimpleProvider::fromFactory(fn() => $value);
     }
@@ -230,12 +213,12 @@ class Container implements \ArrayAccess, ContainerInterface
      * This is where all the magic happens.
      *
      * @param class-string $offset
-     * @throws Error\InvalidKey
+     * @throws InvalidKey
      */
     public function offsetGet($offset): mixed
     {
         if (!is_string($offset)) {
-            throw new Error\InvalidKey("Invalid key type: " . gettype($offset));
+            throw new InvalidKey("Invalid key type: " . gettype($offset));
         }
 
         // Provide the instance.
@@ -244,23 +227,27 @@ class Container implements \ArrayAccess, ContainerInterface
         $instance = $provider($this);
 
         // Apply decorators.
-        if (isset($this->decorators[$offset])) {
-            $instance = $this->decorators[$offset]->send($instance);
+        $instance = $this->applyDecorators($offset, $instance, $provider);
 
-            if (!$provider instanceof PrototypeProvider) {
-                // Remove the decorators if the provider is not a prototype.
-                unset($this->decorators[$offset]);
+        // Apply middleware.
+        return $this->middleware->send($offset, $instance);
+    }
 
-                // Cache the instance if the provider is not a prototype.
-                $this->providers[$offset] = SimpleProvider::fromFactory(fn() => $instance);
-            }
+    /**
+     * Apply decorators to the instance.
+     *
+     * @param class-string $serviceName
+     */
+    protected function applyDecorators(string $serviceName, object $instance, Provider $provider): object
+    {
+        $instance = $this->decorators->send($serviceName, $instance);
+        if (!$provider instanceof PrototypeProvider) {
+            // Remove the decorators if the provider is not a prototype.
+            $this->decorators->purge($serviceName);
+            // Cache the instance if the provider is not a prototype.
+            $this->providers[$serviceName] = SimpleProvider::fromFactory(fn() => $instance);
         }
-
-        // Apply middlewares.
-        if (!isset($this->middlewares[$offset])) {
-            return $instance;
-        }
-        return $this->middlewares[$offset]->send($instance);
+        return $instance;
     }
 
     /**

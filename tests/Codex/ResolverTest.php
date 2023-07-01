@@ -11,12 +11,16 @@ use Arcanum\Test\Fixture;
 use Arcanum\Codex\Error;
 use Arcanum\Codex\Resolver;
 use Arcanum\Codex\EventDispatcher;
+use Arcanum\Codex\ClassNameResolver;
+use Arcanum\Codex\PrimitiveResolver;
 use Arcanum\Codex\Event\CodexEvent;
 use Arcanum\Codex\Event\ClassResolved;
 use Arcanum\Codex\Event\ClassRequested;
 use Psr\Container\ContainerInterface;
 
 #[CoversClass(Resolver::class)]
+#[CoversClass(ClassNameResolver::class)]
+#[CoversClass(PrimitiveResolver::class)]
 #[UsesClass(Error\UnresolvableClass::class)]
 #[UsesClass(Error\UnresolvablePrimitive::class)]
 #[UsesClass(Error\UnresolvableUnionType::class)]

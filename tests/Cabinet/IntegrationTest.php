@@ -18,18 +18,14 @@ use Arcanum\Test\Flow\Continuum\Fixture\BasicProgression;
 #[UsesClass(\Arcanum\Codex\Resolver::class)]
 #[UsesClass(\Arcanum\Flow\Pipeline\Pipeline::class)]
 #[UsesClass(\Arcanum\Flow\Pipeline\StandardProcessor::class)]
+#[UsesClass(\Arcanum\Flow\Pipeline\PipelayerSystem::class)]
 #[UsesClass(\Arcanum\Cabinet\SimpleProvider::class)]
 #[UsesClass(\Arcanum\Cabinet\PrototypeProvider::class)]
 #[UsesClass(\Arcanum\Flow\Continuum\Continuum::class)]
 #[UsesClass(\Arcanum\Flow\Continuum\StandardAdvancer::class)]
+#[UsesClass(\Arcanum\Flow\Continuum\ContinuationCollection::class)]
 final class IntegrationTest extends TestCase
 {
-    public function testCreateContainer(): void
-    {
-        // Assert
-        $this->assertInstanceOf(Container::class, Container::create());
-    }
-
     public function testDecorators(): void
     {
         // Arrange
@@ -47,7 +43,7 @@ final class IntegrationTest extends TestCase
             ->with(Fixture\SimpleService::class)
             ->willReturnCallback(fn () => $original);
 
-        $container = Container::fromResolver($resolver);
+        $container = new Container($resolver);
         $container->service(Fixture\SimpleService::class);
 
         $container->decorator(
@@ -93,7 +89,7 @@ final class IntegrationTest extends TestCase
             ->with(Fixture\SimpleService::class)
             ->willReturnCallback(fn () => $original);
 
-        $container = Container::fromResolver($resolver);
+        $container = new Container($resolver);
         $container->prototype(Fixture\SimpleService::class);
 
         $container->decorator(
@@ -130,7 +126,7 @@ final class IntegrationTest extends TestCase
             ->with(Fixture\SimpleService::class)
             ->willReturnCallback(fn () => $service);
 
-        $container = Container::fromResolver($resolver);
+        $container = new Container($resolver);
         $container->service(Fixture\SimpleService::class);
 
         $container->middleware(

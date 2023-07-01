@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Arcanum\Flow\River;
 
 /** @phpstan-consistent-constructor */
-class StreamResource
+class StreamResource implements ResourceWrapper
 {
     /**
      * @param resource $resource
@@ -127,6 +127,7 @@ class StreamResource
     {
         return fwrite($this->resource, $data);
     }
+
     public function streamGetContents(): string|false
     {
         return stream_get_contents($this->resource);

@@ -12,27 +12,9 @@ class Registry implements Coercible, Serializable
      *
      * @param array<string, mixed> $data
      */
-    protected function __construct(
-        protected array $data,
+    public function __construct(
+        protected array $data = [],
     ) {
-    }
-
-    /**
-     * Construct a Registry with default data.
-     *
-     * @param array<string, mixed> $data
-     */
-    public static function fromData(array $data): static
-    {
-        return new static($data);
-    }
-
-    /**
-     * Construct an empty Registry.
-     */
-    public static function create(): static
-    {
-        return new static([]);
     }
 
     /**
