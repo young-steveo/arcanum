@@ -145,7 +145,7 @@ final class UploadedFileTest extends TestCase
     {
         // Arrange
         $uploadedFile = new UploadedFile(
-            file: \sys_get_temp_dir() . 'testy',
+            file: \sys_get_temp_dir() . 'test.txt',
             mode: 'w+',
             error: Error::UPLOAD_ERR_OK,
         );
