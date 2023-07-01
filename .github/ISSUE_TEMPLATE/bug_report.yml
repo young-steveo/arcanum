@@ -1,0 +1,52 @@
+name: Bug Report
+description: "Let us know that something ain't right."
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! 🐛
+        Please fill out the information below to help us reproduce the issue and fix it.
+  - type: input
+    id: title
+    attributes:
+      label: Bug Title
+      description: A clear and concise title for the bug report.
+      placeholder: [Bug] XYZ doesn't work when the widgets are frumious.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Arcanum Version
+      description: The version of Arcanum you're using.
+      placeholder: v1.0.0
+    validations:
+      required: true
+  - type: input
+    id: php_version
+    attributes:
+      label: PHP Version
+      description: The version of PHP you're using.
+      placeholder: 8.2.7
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: I was trying to do X when Y happened.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Run the following code: `...`
+        2. Check the output of '....'
+        3. Repeat the process at '....'
+        4. See error
+    validations:
+      required: true
