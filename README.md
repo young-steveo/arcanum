@@ -1,3 +1,5 @@
+Arcanum is under heavy development. v0.0.01
+
 # Arcanum: A Cutting Edge PHP Framework
 
 This is Arcanum, a ground-breaking PHP Framework that aims to stand shoulder to shoulder with Laravel, CakePHP, Laminas and Symfony. These well-established frameworks have carved a rightful, meaningful place in the developer universe, empowering engineers with robust Model-View-Controller (MVC) tools. We respect and appreciate their immense contributions.
