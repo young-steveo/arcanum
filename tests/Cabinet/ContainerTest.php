@@ -62,6 +62,49 @@ final class ContainerTest extends TestCase
         $this->assertSame($service, $container[Fixture\SimpleService::class]);
     }
 
+    public function testArrayAccessWithNullProviderForClassThatDoesExists(): void
+    {
+        // Arrange
+        $service = new Fixture\SimpleService(new Fixture\SimpleDependency());
+
+        /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
+            ->onlyMethods(['resolve', 'resolveWith'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
+
+        $resolver->expects($this->once())
+            ->method('resolve')
+            ->with(Fixture\SimpleService::class)
+            ->willReturn($service);
+
+        /** @var \Arcanum\Flow\Continuum\Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
+
+        // Act
+        $service = $container[Fixture\SimpleService::class];
+
+        // Assert
+        $this->assertInstanceOf(Fixture\SimpleService::class, $service);
+    }
+
     public function testContainerThrowsIfArrayAccessOffsetDoesNotExist(): void
     {
         // Arrange
@@ -451,6 +494,68 @@ final class ContainerTest extends TestCase
 
         // Act
         $container->provider(Fixture\SimpleService::class, $provider);
+        $result = $container->get(Fixture\SimpleService::class);
+
+        // Assert
+        $this->assertSame($service, $result);
+    }
+
+    public function testContainerProviderWithStringProvider(): void
+    {
+        // Arrange
+        $service = new Fixture\SimpleService(new Fixture\SimpleDependency());
+
+        /** @var \Arcanum\Cabinet\Provider&\PHPUnit\Framework\MockObject\MockObject */
+        $provider = $this->getMockBuilder(\Arcanum\Cabinet\Provider::class)
+            ->onlyMethods(['__invoke'])
+            ->getMock();
+
+        $provider->expects($this->once())
+            ->method('__invoke')
+            ->willReturn($service);
+
+        /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
+            ->onlyMethods(['resolve', 'resolveWith'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
+
+        $resolver->expects($this->once())
+            ->method('resolve')
+            ->with(\Arcanum\Cabinet\Provider::class)
+            ->willReturn($provider);
+
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->once())
+            ->method('send')
+            ->willReturnCallback(fn(string $key, object $object) => $object);
+
+        $container = new Container($resolver, $collection, $system);
+
+        // Act
+        $container->provider(Fixture\SimpleService::class, \Arcanum\Cabinet\Provider::class);
         $result = $container->get(Fixture\SimpleService::class);
 
         // Assert
