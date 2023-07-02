@@ -9,7 +9,7 @@ use Arcanum\Flow\Continuum\Progression;
 final class BasicProgression implements Progression
 {
     private \Closure $stage;
-    private function __construct(\Closure $stage)
+    public function __construct(\Closure $stage)
     {
         $this->stage = $stage;
     }

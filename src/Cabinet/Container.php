@@ -12,6 +12,17 @@ use Arcanum\Flow\Continuum\Collection;
 use Arcanum\Flow\Continuum\ContinuationCollection;
 use Arcanum\Flow\Continuum\Progression;
 
+/**
+ * Arcanum Application Container
+ * -----------------------------
+ *
+ * The application container is the primary service container for the
+ * Arcanum framework. It implements the Application Interface and provides
+ * functionality for registering services, factories, providers, decorators,
+ * prototypes, and middleware.
+ *
+ * Your application should create one of these in the bootstrap process.
+ */
 class Container implements Application
 {
     /**
@@ -93,9 +104,18 @@ class Container implements Application
      * Register a service provider on the container.
      *
      * @param string $serviceName
+     * @param Provider|class-string<Provider> $provider
      */
-    public function provider(string $serviceName, Provider $provider): void
+    public function provider(string $serviceName, string|Provider $provider): void
     {
+        if (is_string($provider)) {
+            // We need to proxy the provider through a factory so that we can
+            // resolve it from the container when it is requested.
+            $provider = SimpleProvider::fromFactory(function (Container $container) use ($provider) {
+                $providerProvider = $container->resolver->resolve($provider);
+                return $providerProvider($container);
+            });
+        }
         $this->providers[$serviceName] = $provider;
     }
 
@@ -156,10 +176,13 @@ class Container implements Application
      * the container.
      *
      * @param string $serviceName
-     * @param Progression $middleware
+     * @param Progression|class-string<Progression> $middleware
      */
-    public function middleware(string $serviceName, Progression $middleware): void
+    public function middleware(string $serviceName, string|Progression $middleware): void
     {
+        if (is_string($middleware)) {
+            $middleware = new MiddlewareProgression($middleware, $this->resolver);
+        }
         $this->middleware->add($serviceName, $middleware);
     }
 

@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Arcanum\Cabinet;
 
+/**
+ * Simple Provider
+ * ---------------
+ *
+ * The SimpleProvider class is used by the framework to register services that
+ * do not otherwise have a custom provider.
+ */
 final class SimpleProvider extends Provider
 {
     /**
