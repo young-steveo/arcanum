@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Arcanum\Cabinet;
 
+/**
+ * Service Registry Interface
+ * --------------------------
+ *
+ * The service registry interface defines the methods required to register
+ * services with the application container.
+ */
 interface ServiceRegistry
 {
     /**

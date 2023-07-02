@@ -865,6 +865,59 @@ final class ContainerTest extends TestCase
         $this->assertInstanceOf(Fixture\ConcreteService::class, $result);
     }
 
+    public function testServiceThrowsIfImplementationStringIsNotAClassString(): void
+    {
+        // Arrange
+        /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
+            ->onlyMethods(['resolve', 'resolveWith'])
+            ->getMock();
+
+        $resolver->expects($this->never())
+            ->method('resolveWith');
+
+        $resolver->expects($this->never())
+            ->method('resolve');
+
+        /** @var Collection&\PHPUnit\Framework\MockObject\MockObject */
+        $collection = $this->getMockBuilder(Collection::class)
+            ->getMock();
+
+        $collection->expects($this->never())
+            ->method('continuation');
+
+        $collection->expects($this->never())
+            ->method('add');
+
+        $collection->expects($this->never())
+            ->method('send');
+
+        /** @var System&\PHPUnit\Framework\MockObject\MockObject */
+        $system = $this->getMockBuilder(System::class)
+            ->getMock();
+
+        $system->expects($this->never())
+            ->method('pipe');
+
+        $system->expects($this->never())
+            ->method('send');
+
+        $container = new Container($resolver, $collection, $system);
+
+        $serviceName = Fixture\ServiceInterface::class;
+
+        $implementation = 'string';
+
+        // Assert
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            "Cannot register service '$serviceName' with non-existent class '$implementation'"
+        );
+
+        // Act
+        $container->service($serviceName, $implementation); // @phpstan-ignore-line
+    }
+
     public function testServiceWith(): void
     {
         // Arrange

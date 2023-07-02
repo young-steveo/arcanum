@@ -26,6 +26,7 @@ use Arcanum\Test\Flow\Continuum\Fixture\BasicProgression;
 #[UsesClass(\Arcanum\Flow\Continuum\ContinuationCollection::class)]
 #[UsesClass(\Arcanum\Codex\ClassNameResolver::class)]
 #[UsesClass(\Arcanum\Codex\Event\ClassRequested::class)]
+#[UsesClass(\Arcanum\Cabinet\MiddlewareProgression::class)]
 final class IntegrationTest extends TestCase
 {
     public function testDecorators(): void
@@ -143,6 +144,70 @@ final class IntegrationTest extends TestCase
                 $count++;
                 $next();
             })
+        );
+
+        // Act
+        $result = $container->get(Fixture\SimpleService::class);
+        $shouldBeSame = $container->get(Fixture\SimpleService::class);
+
+        // Assert
+        $this->assertSame($service, $result);
+        $this->assertSame($service, $shouldBeSame);
+        $this->assertSame(2, $count);
+    }
+
+    public function testMiddlewarePassingInAClassString(): void
+    {
+        // Arrange
+        /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
+            ->onlyMethods(['resolve', 'resolveWith'])
+            ->getMock();
+
+        $service = new Fixture\SimpleService(new Fixture\SimpleDependency());
+
+        $count = 0;
+        $resolveMatcher = $this->exactly(3);
+        $resolver->expects($resolveMatcher)
+            ->method('resolve')
+            ->willReturnCallback(function (string $className) use ($service, $resolveMatcher, &$count): object {
+                switch ($className) {
+                    case Fixture\SimpleService::class:
+                        if ($resolveMatcher->numberOfInvocations() === 1) {
+                            return $service;
+                        }
+                        $this->fail('Unexpected number of invocations.');
+                        // no break
+                    case BasicProgression::class:
+                        if ($resolveMatcher->numberOfInvocations() === 2) {
+                            return BasicProgression::fromClosure(fn(object $service, callable $next) => $next());
+                        }
+                        if ($resolveMatcher->numberOfInvocations() === 3) {
+                            return BasicProgression::fromClosure(
+                                function (object $service, callable $next) use (&$count) {
+                                    $count++;
+                                    $next();
+                                }
+                            );
+                        }
+                        $this->fail('Unexpected number of invocations.');
+                        // no break
+                    default:
+                        $this->fail("Unexpected class name: $className");
+                }
+            });
+
+        $container = new Container($resolver);
+        $container->service(Fixture\SimpleService::class);
+        $container->prototype(BasicProgression::class);
+
+        $container->middleware(
+            serviceName: Fixture\SimpleService::class,
+            middleware: BasicProgression::class
+        );
+        $container->middleware(
+            serviceName: Fixture\SimpleService::class,
+            middleware: BasicProgression::class
         );
 
         // Act

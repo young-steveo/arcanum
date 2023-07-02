@@ -3,6 +3,38 @@ Arcanum is under heavy development. v0.0.01
 # Arcanum: A Cutting-Edge PHP Framework
 Arcanum is a transformative PHP Framework with a fresh take on web application development, crafted meticulously with the modern software engineer in mind.
 
+## Packages
+Arcanum is a collection of packages that work together to create a robust, scalable, and maintainable web application framework. Each package is designed to be used independently, but they work best together.
+
+### Arcanum Cabinet
+[Arcanum Cabinet](https://github.com/arcanum-org/framework/tree/main/src/Cabinet) is a flexible PSR-11 compliant dependency injection application container. It's designed to be easy to use while providing a lot of flexibility. It's one of the pillars of the Arcanum Framework.
+
+### Arcanum Codex
+[Arcanum Codex](https://github.com/arcanum-org/framework/tree/main/src/Codex) is a practically magical Class Resolver. It's primarily used by Arcanum Cabinet to automatically resolve classes and their dependencies, but it can be used independently to build pretty much anything you can throw at it.
+
+### Arcanum Echo
+[Arcanum Echo](https://github.com/arcanum-org/framework/tree/main/src/Echo) is a PSR-14 event dispatcher. All of the Arcanum packages use it to dispatch events, but it can be used independently to build any event-driven system.
+
+### Arcanum Flow
+[Arcanum Flow](https://github.com/arcanum-org/framework/tree/main/src/Flow) is all about moving data from point A to point B. It's composed of four related packages:
+
+1. [Continuum](https://github.com/arcanum-org/framework/tree/main/src/Flow/Continuum) is a package for creating and managing middleware pipelines.
+2. [Conveyor](https://github.com/arcanum-org/framework/tree/main/src/Flow/Conveyor) is Arcanum's Command Bus. It's all about dispatching Data Transfer Objects (DTOs) to their handlers, and managing the before and after middleware for those DTOs.
+3. [Pipeline](https://github.com/arcanum-org/framework/tree/main/src/Flow/Pipeline) is a package for creating and managing pipelines of operations. If you have a series of steps, Pipeline can wrap them up in a nice, neat system.
+4. [River](https://github.com/arcanum-org/framework/tree/main/src/Flow/River) is a PSR-7 Stream implementation. It's a simple but thorough package that makes working with streams a breeze.
+
+### Arcanum Gather
+[Arcanum Gather](https://github.com/arcanum-org/framework/tree/main/src/Gather) is a package for collecting and managing configuration data, environment variables, and other collections of key/value pairs.
+
+### Arcanum Hyper
+[Arcanum Hyper](https://github.com/arcanum-org/framework/tree/main/src/Hyper] is a package for working with PSR-7 HTTP requests and responses in a nice, object-oriented way.
+
+### Arcanum Ignition
+[Arcanum Ignition](https://github.com/arcanum-org/framework/tree/main/src/Ignition) is the bootstrap package for Arcanum applications. Every Arcanum app uses an Ignition Kernel to get things started, keep them running, and terminate gracefully.
+
+### Arcanum Parchment
+[Arcanum Parchment](https://github.com/arcanum-org/framework/tree/main/src/Parchment) is a library of utilities designed to make working with files a breeze.
+
 ## Arcanum is Different
 Unlike most PHP Frameworks, Arcanum applications don't follow the classic Model-View-Controller (MVC) paradigm.
 

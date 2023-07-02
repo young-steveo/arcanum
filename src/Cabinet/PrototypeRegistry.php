@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Arcanum\Cabinet;
 
+/**
+ * Prototype Registry Interface
+ * ----------------------------
+ *
+ * The prototype registry interface defines the methods required to register
+ * prototypes with the application container.
+ */
 interface PrototypeRegistry
 {
     /**
