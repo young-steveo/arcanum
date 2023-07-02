@@ -27,7 +27,7 @@ Arcanum is a collection of packages that work together to create a robust, scala
 [Arcanum Gather](https://github.com/arcanum-org/framework/tree/main/src/Gather) is a package for collecting and managing configuration data, environment variables, and other collections of key/value pairs.
 
 ### Arcanum Hyper
-[Arcanum Hyper](https://github.com/arcanum-org/framework/tree/main/src/Hyper] is a package for working with PSR-7 HTTP requests and responses in a nice, object-oriented way.
+[Arcanum Hyper](https://github.com/arcanum-org/framework/tree/main/src/Hyper) is a package for working with PSR-7 HTTP requests and responses in a nice, object-oriented way.
 
 ### Arcanum Ignition
 [Arcanum Ignition](https://github.com/arcanum-org/framework/tree/main/src/Ignition) is the bootstrap package for Arcanum applications. Every Arcanum app uses an Ignition Kernel to get things started, keep them running, and terminate gracefully.
