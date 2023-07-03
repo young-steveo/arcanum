@@ -235,7 +235,7 @@ final class ResolverTest extends TestCase
         $resolver->resolve(Fixture\AbstractService::class);
     }
 
-    public function testVariadicClassService(): void
+    public function testVariadicClassServiceWithNoSpecification(): void
     {
         // Arrange
         /** @var ContainerInterface&\PHPUnit\Framework\MockObject\MockObject */
@@ -252,11 +252,12 @@ final class ResolverTest extends TestCase
 
         $resolver = Resolver::forContainer($container);
 
-        // Assert
-        $this->expectException(Error\UnresolvableClass::class);
-
         // Act
-        $resolver->resolve(Fixture\VariadicClassService::class);
+        $service = $resolver->resolve(Fixture\VariadicClassService::class);
+
+        // Assert
+        $this->assertInstanceOf(Fixture\VariadicClassService::class, $service);
+        $this->assertSame([], $service->dependencies);
     }
 
     public function testClassWithPrimitivesThatHaveNoDefaults(): void
@@ -600,5 +601,212 @@ final class ResolverTest extends TestCase
         // Assert
         $this->assertInstanceOf(Fixture\ParentPrimitiveService::class, $resolved);
         $this->assertInstanceOf(Fixture\DependencyWithNoDefaultPrimitive::class, $resolved->dependency);
+    }
+
+    public function testSpecifyVariableParameter(): void
+    {
+        // Arrange
+        /** @var ContainerInterface&\PHPUnit\Framework\MockObject\MockObject */
+        $container = $this->getMockBuilder(ContainerInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get', 'has'])
+            ->getMock();
+
+        $container->expects($this->never())
+            ->method('get');
+
+        $container->expects($this->never())
+            ->method('has');
+
+        $resolver = Resolver::forContainer($container);
+
+        // Act
+        $resolver->specify(Fixture\DependencyWithNoDefaultPrimitive::class, '$string', 'foo');
+        $resolver->specify(Fixture\DependencyWithNoDefaultPrimitive::class, '$int', 42);
+        $resolver->specify(Fixture\DependencyWithNoDefaultPrimitive::class, '$float', 42.42);
+        $resolver->specify(Fixture\DependencyWithNoDefaultPrimitive::class, '$bool', true);
+        $resolver->specify(Fixture\DependencyWithNoDefaultPrimitive::class, '$array', ['a', 'b', 'c']);
+        $resolver->specify(Fixture\DependencyWithNoDefaultPrimitive::class, '$object', new \stdClass());
+        $resolver->specify(Fixture\DependencyWithNoDefaultPrimitive::class, '$mixed', 'foo two');
+        $resolver->specify(Fixture\DependencyWithNoDefaultPrimitive::class, '$null', null);
+
+        $resolved = $resolver->resolve(Fixture\DependencyWithNoDefaultPrimitive::class);
+
+        // Assert
+        $this->assertSame('foo', $resolved->getString());
+        $this->assertSame(42, $resolved->getInt());
+        $this->assertSame(42.42, $resolved->getFloat());
+        $this->assertTrue($resolved->getBool());
+        $this->assertSame(['a', 'b', 'c'], $resolved->getArray());
+        $this->assertInstanceOf(\stdClass::class, $resolved->getObject());
+        $this->assertSame('foo two', $resolved->getMixed());
+        $this->assertNull($resolved->getNull());
+    }
+
+    public function testSpecifyInterfaceParameter(): void
+    {
+        // Arrange
+        /** @var ContainerInterface&\PHPUnit\Framework\MockObject\MockObject */
+        $container = $this->getMockBuilder(ContainerInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get', 'has'])
+            ->getMock();
+
+        $container->expects($this->never())
+            ->method('get');
+
+        $container->expects($this->once())
+            ->method('has')
+            ->with(Fixture\ServiceImplementsInterface::class)
+            ->willReturn(false);
+
+        $resolver = Resolver::forContainer($container);
+
+        // Act
+        $resolver->specify(
+            when: Fixture\ServiceWithInterface::class,
+            needs: Fixture\ServiceInterface::class,
+            give: Fixture\ServiceImplementsInterface::class
+        );
+
+        $resolved = $resolver->resolve(Fixture\ServiceWithInterface::class);
+
+        // Assert
+        $this->assertInstanceOf(Fixture\ServiceImplementsInterface::class, $resolved->dependency);
+    }
+
+    public function testSpecifyArrayOfClasses(): void
+    {
+        // Arrange
+        /** @var ContainerInterface&\PHPUnit\Framework\MockObject\MockObject */
+        $container = $this->getMockBuilder(ContainerInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get', 'has'])
+            ->getMock();
+
+        $container->expects($this->never())
+            ->method('get');
+
+        $container->expects($this->exactly(2))
+            ->method('has')
+            ->with(Fixture\ServiceImplementsInterface::class)
+            ->willReturn(false);
+
+        $resolver = Resolver::forContainer($container);
+
+        // Act
+        $resolver->specify(
+            when: [
+                Fixture\ServiceWithInterface::class,
+                Fixture\AnotherServiceWithInterface::class
+            ],
+            needs: Fixture\ServiceInterface::class,
+            give: Fixture\ServiceImplementsInterface::class
+        );
+
+        $serviceA = $resolver->resolve(Fixture\ServiceWithInterface::class);
+        $serviceB = $resolver->resolve(Fixture\AnotherServiceWithInterface::class);
+
+        // Assert
+        $this->assertInstanceOf(Fixture\ServiceImplementsInterface::class, $serviceA->dependency);
+        $this->assertInstanceOf(Fixture\ServiceImplementsInterface::class, $serviceB->dependency);
+    }
+
+    public function testSpecifyVariadicClassService(): void
+    {
+        // Arrange
+        /** @var ContainerInterface&\PHPUnit\Framework\MockObject\MockObject */
+        $container = $this->getMockBuilder(ContainerInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get', 'has'])
+            ->getMock();
+
+        $container->expects($this->exactly(3))
+            ->method('get')
+            ->with(Fixture\SimpleDependency::class)
+            ->willReturn(new Fixture\SimpleDependency());
+
+        $container->expects($this->exactly(3))
+            ->method('has')
+            ->with(Fixture\SimpleDependency::class)
+            ->willReturn(true);
+
+        $resolver = Resolver::forContainer($container);
+
+        // Act
+        $resolver->specify(
+            when: Fixture\VariadicClassService::class,
+            needs: Fixture\SimpleDependency::class,
+            give: [
+                Fixture\SimpleDependency::class,
+                Fixture\SimpleDependency::class,
+                Fixture\SimpleDependency::class,
+            ]
+        );
+
+        $service = $resolver->resolve(Fixture\VariadicClassService::class);
+
+        // Assert
+        $this->assertCount(3, $service->dependencies);
+    }
+
+    public function testSpecifyWithClosure(): void
+    {
+        // Arrange
+        /** @var ContainerInterface&\PHPUnit\Framework\MockObject\MockObject */
+        $container = $this->getMockBuilder(ContainerInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get', 'has'])
+            ->getMock();
+
+        $container->expects($this->never())
+            ->method('get');
+
+        $container->expects($this->never())
+            ->method('has');
+
+        $resolver = Resolver::forContainer($container);
+
+        // Act
+        $resolver->specify(
+            when: Fixture\ServiceWithInterface::class,
+            needs: Fixture\ServiceInterface::class,
+            give: fn () => new Fixture\ServiceImplementsInterface()
+        );
+
+        $resolved = $resolver->resolve(Fixture\ServiceWithInterface::class);
+
+        // Assert
+        $this->assertInstanceOf(Fixture\ServiceImplementsInterface::class, $resolved->dependency);
+    }
+
+    public function testSpecifyWithInstance(): void
+    {
+        // Arrange
+        /** @var ContainerInterface&\PHPUnit\Framework\MockObject\MockObject */
+        $container = $this->getMockBuilder(ContainerInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get', 'has'])
+            ->getMock();
+
+        $container->expects($this->never())
+            ->method('get');
+
+        $container->expects($this->never())
+            ->method('has');
+
+        $resolver = Resolver::forContainer($container);
+
+        // Act
+        $resolver->specify(
+            when: Fixture\ServiceWithInterface::class,
+            needs: Fixture\ServiceInterface::class,
+            give: new Fixture\ServiceImplementsInterface()
+        );
+
+        $resolved = $resolver->resolve(Fixture\ServiceWithInterface::class);
+
+        // Assert
+        $this->assertInstanceOf(Fixture\ServiceImplementsInterface::class, $resolved->dependency);
     }
 }
