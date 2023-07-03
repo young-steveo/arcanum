@@ -6,6 +6,7 @@ namespace Arcanum\Cabinet;
 
 use Arcanum\Codex\ClassResolver;
 use Arcanum\Codex\Resolver;
+use Arcanum\Codex\Specifier;
 use Arcanum\Flow\Pipeline\System;
 use Arcanum\Flow\Pipeline\PipelayerSystem;
 use Arcanum\Flow\Continuum\Collection;
@@ -23,12 +24,12 @@ use Arcanum\Flow\Continuum\Progression;
  *
  * Your application should create one of these in the bootstrap process.
  */
-class Container implements Application
+class Container implements Application, Specifier
 {
     /**
      * ClassResolver used to build classes.
      */
-    protected ClassResolver $resolver;
+    protected ClassResolver&Specifier $resolver;
 
     /**
      * @var array<string, Provider>
@@ -49,7 +50,7 @@ class Container implements Application
      * Container uses a resolver to instantiate services.
      */
     public function __construct(
-        ClassResolver $resolver = null,
+        ClassResolver&Specifier $resolver = null,
         Collection $middleware = null,
         System $decorators = null
     ) {
@@ -184,6 +185,21 @@ class Container implements Application
             $middleware = new MiddlewareProgression($middleware, $this->resolver);
         }
         $this->middleware->add($serviceName, $middleware);
+    }
+
+    /**
+     * Define a specification for a service.
+     *
+     * This is often completely unnecessary, but can be useful for defining
+     * services that have primitive dependencies, variadic dependencies, or
+     * assigning different implementations of interface dependencies to different
+     * services.
+     *
+     * @param class-string|array<class-string> $when
+     */
+    public function specify(string|array $when, string $needs, mixed $give): void
+    {
+        $this->resolver->specify($when, $needs, $give);
     }
 
     /**

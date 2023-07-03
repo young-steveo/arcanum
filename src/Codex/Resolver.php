@@ -7,7 +7,7 @@ namespace Arcanum\Codex;
 use Arcanum\Codex\Event\CodexEvent;
 use Psr\Container\ContainerInterface;
 
-class Resolver implements ClassResolver
+class Resolver implements ClassResolver, Specifier
 {
     /**
      * List of Codex\EventDispatcher instances.

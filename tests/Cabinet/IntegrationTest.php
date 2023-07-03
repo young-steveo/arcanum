@@ -33,8 +33,9 @@ final class IntegrationTest extends TestCase
     public function testDecorators(): void
     {
         // Arrange
-        /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
-        $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
+        /** @var \Arcanum\Codex\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Codex\Resolver::class)
+            ->disableOriginalConstructor()
             ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
 
@@ -79,8 +80,9 @@ final class IntegrationTest extends TestCase
     public function testDecoratorsOnPrototypes(): void
     {
         // Arrange
-        /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
-        $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
+        /** @var \Arcanum\Codex\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Codex\Resolver::class)
+            ->disableOriginalConstructor()
             ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
 
@@ -118,8 +120,9 @@ final class IntegrationTest extends TestCase
     public function testMiddleware(): void
     {
         // Arrange
-        /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
-        $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
+        /** @var \Arcanum\Codex\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Codex\Resolver::class)
+            ->disableOriginalConstructor()
             ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
 
@@ -160,8 +163,9 @@ final class IntegrationTest extends TestCase
     public function testMiddlewarePassingInAClassString(): void
     {
         // Arrange
-        /** @var \Arcanum\Codex\ClassResolver&\PHPUnit\Framework\MockObject\MockObject */
-        $resolver = $this->getMockBuilder(\Arcanum\Codex\ClassResolver::class)
+        /** @var \Arcanum\Codex\Resolver&\PHPUnit\Framework\MockObject\MockObject */
+        $resolver = $this->getMockBuilder(\Arcanum\Codex\Resolver::class)
+            ->disableOriginalConstructor()
             ->onlyMethods(['resolve', 'resolveWith'])
             ->getMock();
 

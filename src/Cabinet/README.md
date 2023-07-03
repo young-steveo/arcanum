@@ -350,3 +350,58 @@ Register a service with the container and specify its dependencies.
 ---
 
 
+```php
+specify(string|array $when, string $needs, mixed $give): void;
+```
+
+Register a specification for one or more services. This is useful for specifying otherwise unresolvable dependencies, like primitives without default values, or interfaces where there are several different implementations and you want different services to use different implementations.
+
+| Argument | Type | Description
+| --- | --- | ---
+| `$when` | `string` &#124; `array` | The name of the service or an array of service names to specify.
+| `$needs` | `string` | Either the name of the dependency or a variable parameter name (e.g. `$foo`) to specify.
+| `$give` | `mixed` | The value to give the dependency. This can be a class name, a primitive value, a closure that returns a value, or, in the case of variadics, an array of values.
+| **return** | `void` |
+
+Specify Examples:
+
+```php
+// Specify a primitive value for a dependency.
+$container->specify(
+    when: Person::class,
+    needs: '$name',
+    give: 'John Doe'
+);
+
+// Specify a class name for a dependency.
+$container->specify(
+    when: Location::class,
+    needs: AddressInterface::class,
+    give: ConcreteAddress::class
+);
+
+// Specify a closure for a dependency.
+$container->specify(
+    when: Location::class,
+    needs: AddressInterface::class,
+    give: fn() => new ConcreteAddress('123 Main St.')
+);
+
+// Specify a variadic dependency.
+$container->specify(
+    when: Shop::class,
+    needs: Report::class,
+    give: [
+        SalesReport::class,
+        InventoryReport::class,
+        EmployeeReport::class
+    ]
+);
+
+// Specify a dependency for multiple services.
+$container->specify(
+    when: [ Person::class, Location::class ],
+    needs: AddressInterface::class,
+    give: ConcreteAddress::class
+);
+```
