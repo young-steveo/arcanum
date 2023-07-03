@@ -7,7 +7,7 @@ namespace Arcanum\Codex;
 use Arcanum\Codex\Event\CodexEvent;
 use Psr\Container\ContainerInterface;
 
-class Resolver implements ClassResolver
+class Resolver implements ClassResolver, Specifier
 {
     /**
      * List of Codex\EventDispatcher instances.
@@ -15,6 +15,14 @@ class Resolver implements ClassResolver
      * @var EventDispatcher[]
      */
     protected array $eventDispatchers = [];
+
+    /**
+     * List of specifications the resolver will use to resolve dependencies
+     * before attempting to resolve them itself.
+     *
+     * @var array<class-string, array<string, mixed>>
+     */
+    private $specifications = [];
 
     /**
      * Resolver uses a container to resolve dependencies.
@@ -89,6 +97,24 @@ class Resolver implements ClassResolver
     }
 
     /**
+     * Instruct the resolver on how to resolve a particular dependency.
+     *
+     * @param class-string|array<class-string> $when
+     * @param string $needs Either a class name or a variable name.
+     * @param mixed $give
+     */
+    public function specify(string|array $when, string $needs, mixed $give): void
+    {
+        if (is_array($when)) {
+            foreach ($when as $name) {
+                $this->specify($name, $needs, $give);
+            }
+            return;
+        }
+        $this->specifications[$when][$needs] = $give;
+    }
+
+    /**
      * @param \ReflectionParameter[] $parameters
      * @return mixed[]
      */
@@ -96,15 +122,7 @@ class Resolver implements ClassResolver
     {
         $dependencies = [];
         foreach ($parameters as $parameter) {
-            $dependencyName = ClassNameResolver::resolve($parameter);
-            if ($dependencyName === null) {
-                $dependency = PrimitiveResolver::resolve($parameter);
-            } else {
-                $dependency = $this->resolveClass($parameter, $dependencyName);
-            }
-
-            // @todo: currently variadic constructors are not fully implemented, but we'll need
-            // this check when it is.
+            $dependency = $this->resolveParameter($parameter);
             if ($parameter->isVariadic()) {
                 $dependencies = array_merge($dependencies, (array)$dependency);
             } else {
@@ -113,6 +131,74 @@ class Resolver implements ClassResolver
         }
 
         return $dependencies;
+    }
+
+    /**
+     * Resolve a parameter
+     */
+    protected function resolveParameter(\ReflectionParameter $parameter): mixed
+    {
+        // Get the name of the service.
+        $serviceName = $parameter->getDeclaringClass()?->getName() ?? '';
+
+        // Get the specifications for the service, if any.
+        $specifications = $this->specifications[$serviceName] ?? [];
+
+        // Get the name of the parameter.
+        $parameterName = $parameter->getName();
+
+        // check for variable specifications
+        if (array_key_exists('$' . $parameterName, $specifications)) {
+            // Variable specifications are always returned as-is.
+            // This is likely a primitive value, but it could be anything.
+            return $specifications['$' . $parameterName];
+        }
+
+        // check for class specifications
+        $dependencyName = ClassNameResolver::resolve($parameter);
+        if ($dependencyName === null) {
+            // if there is no class name, we'll try to resolve it as a primitive
+            return PrimitiveResolver::resolve($parameter);
+        }
+
+        if (isset($specifications[$dependencyName])) {
+            // If there is a specification for the dependency, we'll resolve it.
+            return $this->resolveSpecification($specifications[$dependencyName]);
+        }
+
+        // If there is no specification, we'll try to resolve it as a class.
+        return $this->resolveClass($parameter, $dependencyName);
+    }
+
+    /**
+     * Resolve a specification.
+     *
+     * The specification might be a class-string, an array of
+     * class-strings, or a callable that returns a fully resolved
+     * value. If it's anything else, it will be returned as-is.
+     */
+    protected function resolveSpecification(mixed $specification): mixed
+    {
+        if (is_array($specification)) {
+            // If the specification is an array of class strings, we'll resolve each item
+            // in the array, and return an array of resolved values.
+            return array_map([$this, 'resolveSpecification'], $specification);
+        }
+
+        // If the specification is a class string we'll resolve it.
+        if (is_string($specification) && class_exists($specification)) {
+            /** @var class-string $specification */
+            return $this->resolve($specification, true);
+        }
+
+        if (is_callable($specification)) {
+            // If the specification is a callable, we'll call it with the container.
+            /** @var callable(ContainerInterface): object $specification */
+            return $this->resolve($specification, true);
+        }
+
+        // If the specification is anything else, we'll just return it as-is.
+        return $specification;
     }
 
     /**
@@ -171,13 +257,14 @@ class Resolver implements ClassResolver
 
     /**
      * @param class-string $name
+     * @return object|array<object>
      */
-    protected function resolveClass(\ReflectionParameter $parameter, string $name): object
+    protected function resolveClass(\ReflectionParameter $parameter, string $name): object|array
     {
         if ($parameter->isVariadic()) {
-            throw new Error\UnresolvableClass(
-                message: $parameter->getName() . " is variadic, and this is not implemented."
-            );
+            // If we have gotten this far, then there were no specifications provided for the
+            // variadic parameter. We'll just return an empty array.
+            return [];
         }
 
         try {
