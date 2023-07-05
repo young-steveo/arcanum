@@ -7,6 +7,8 @@ namespace Arcanum\Test\Hyper;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
+use Arcanum\Hyper\Server;
+use Arcanum\Hyper\PHPServerAdapter;
 use Arcanum\Hyper\ServerRequest;
 use Arcanum\Hyper\Request;
 use Arcanum\Hyper\RequestMethod;
@@ -34,6 +36,7 @@ use Arcanum\Hyper\Files\UploadedFiles;
 
 #[CoversClass(Request::class)]
 #[CoversClass(ServerRequest::class)]
+#[CoversClass(Server::class)]
 #[UsesClass(RequestMethod::class)]
 #[UsesClass(LazyResource::class)]
 #[UsesClass(Stream::class)]
@@ -56,6 +59,7 @@ use Arcanum\Hyper\Files\UploadedFiles;
 #[UsesClass(TemporaryStream::class)]
 #[UsesClass(UploadedFiles::class)]
 #[UsesClass(Version::class)]
+#[UsesClass(PHPServerAdapter::class)]
 final class IntegrationTest extends TestCase
 {
     public function testRequestToStringWithAllData(): void
@@ -113,8 +117,10 @@ final class IntegrationTest extends TestCase
         $_SERVER['CONTENT_TYPE'] = 'application/json';
         $_SERVER['CONTENT_LENGTH'] = '13';
 
+        $server = new Server(new PHPServerAdapter());
+
         // Act
-        $request = ServerRequest::fromGlobals();
+        $request = $server->request();
 
         // Assert
         $this->assertInstanceOf(ServerRequest::class, $request);

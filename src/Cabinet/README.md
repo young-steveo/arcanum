@@ -39,7 +39,7 @@ class CustomServiceProvider extends \Arcanum\Cabinet\Provider
 
     public function __construct(\Arcanum\Gather\Environment $environment)
     {
-        if ($environment->asString("SERVER_ENVIRONMENT") === "production") {
+        if ($environment->asString("ENVIRONMENT") === "production") {
             $this->custom = "production";
         } else {
             $this->custom = "default";

@@ -132,4 +132,12 @@ enum StatusCode : int
             self::NetworkAuthRequired => Phrase::NetworkAuthRequired,
         };
     }
+
+    /**
+     * Is this an informational status code?
+     */
+    public function isInformational(): bool
+    {
+        return $this->value < 200;
+    }
 }
