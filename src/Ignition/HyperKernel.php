@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Arcanum\Ignition;
 
+use Arcanum\Hyper\RequestMethod;
 use Arcanum\Flow\River\LazyResource;
 use Arcanum\Flow\River\Stream;
 use Arcanum\Cabinet\Application;
-use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * A HyperKernel is the initial entry point for an HTTP application.
@@ -17,12 +18,18 @@ use Psr\Http\Message\ServerRequestInterface;
 class HyperKernel implements Kernel, RequestHandlerInterface
 {
     /**
+     * Whether the application has been bootstrapped yet.
+     */
+    private bool $isBootstrapped = false;
+
+    /**
      * The bootstrappers to run before handling a request.
      *
      * @var class-string<Bootstrapper>[]
      */
     protected array $bootstrappers = [
         Bootstrap\Environment::class,
+        Bootstrap\Configuration::class,
     ];
 
     public function __construct(
@@ -55,6 +62,10 @@ class HyperKernel implements Kernel, RequestHandlerInterface
      */
     public function bootstrap(Application $container): void
     {
+        if ($this->isBootstrapped) {
+            return;
+        }
+
         foreach ($this->bootstrappers as $name) {
             /** @var Bootstrapper $bootstrapper */
             $bootstrapper = $container->get($name);
@@ -67,9 +78,6 @@ class HyperKernel implements Kernel, RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        // process the request, then
-
-
         // TEMPORARY
         return new \Arcanum\Hyper\Response(
             new \Arcanum\Hyper\Message(

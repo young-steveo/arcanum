@@ -8,7 +8,7 @@ use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 
-class Response implements ResponseInterface
+class Response implements ResponseInterface, HasCharacterSet
 {
     /**
      * Create a new response.
@@ -17,7 +17,16 @@ class Response implements ResponseInterface
         protected MessageInterface $message,
         protected StatusCode $statusCode = StatusCode::OK,
         protected Phrase|null $reasonPhrase = null,
+        protected string $charset = self::UTF8,
     ) {
+    }
+
+    /**
+     * Get the character set.
+     */
+    public function getCharacterSet(): string
+    {
+        return $this->charset;
     }
 
     /**

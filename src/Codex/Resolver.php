@@ -89,7 +89,7 @@ class Resolver implements ClassResolver, Specifier
         }
 
         // Otherwise, we need to resolve the parameters as dependencies.
-        $dependencies = $this->resolveParameters($parameters);
+        $dependencies = $this->resolveParameters($parameters, $className);
 
         /** @var T */
         $instance = $image->newInstanceArgs($dependencies);
@@ -118,11 +118,11 @@ class Resolver implements ClassResolver, Specifier
      * @param \ReflectionParameter[] $parameters
      * @return mixed[]
      */
-    protected function resolveParameters(array $parameters): array
+    protected function resolveParameters(array $parameters, string $serviceName): array
     {
         $dependencies = [];
         foreach ($parameters as $parameter) {
-            $dependency = $this->resolveParameter($parameter);
+            $dependency = $this->resolveParameter($parameter, $serviceName);
             if ($parameter->isVariadic()) {
                 $dependencies = array_merge($dependencies, (array)$dependency);
             } else {
@@ -136,10 +136,8 @@ class Resolver implements ClassResolver, Specifier
     /**
      * Resolve a parameter
      */
-    protected function resolveParameter(\ReflectionParameter $parameter): mixed
+    protected function resolveParameter(\ReflectionParameter $parameter, string $serviceName): mixed
     {
-        // Get the name of the service.
-        $serviceName = $parameter->getDeclaringClass()?->getName() ?? '';
 
         // Get the specifications for the service, if any.
         $specifications = $this->specifications[$serviceName] ?? [];

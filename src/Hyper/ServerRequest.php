@@ -8,11 +8,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\RequestInterface;
-use Arcanum\Flow\River\CachingStream;
-use Arcanum\Flow\River\Stream;
-use Arcanum\Flow\River\LazyResource;
 use Arcanum\Gather\Registry;
-use Arcanum\Hyper\URI\Spec;
 use Arcanum\Hyper\Files\UploadedFiles;
 
 class ServerRequest implements ServerRequestInterface, \Stringable
@@ -42,29 +38,6 @@ class ServerRequest implements ServerRequestInterface, \Stringable
         protected Registry $serverParams,
         protected UploadedFiles|null $uploadedFiles = null,
     ) {
-    }
-
-    public static function fromGlobals(): ServerRequestInterface
-    {
-
-        $serverParams = new Registry($_SERVER);
-        $method = RequestMethod::from($serverParams->asString('REQUEST_METHOD', 'GET'));
-        $headers = new Headers(getallheaders());
-        $uri = Spec::fromServerParams($serverParams);
-        $body = CachingStream::fromStream(new Stream(LazyResource::for('php://input', 'r+')));
-        $protocolVersion = Version::from(
-            str_replace('HTTP/', '', $serverParams->asString('SERVER_PROTOCOL', '1.1'))
-        );
-
-        $message = new Message($headers, $body, $protocolVersion);
-        $request = new Request($message, $method, $uri);
-        $serverRequest = new self($request, $serverParams);
-
-        return $serverRequest
-            ->withCookieParams($_COOKIE)
-            ->withQueryParams($_GET)
-            ->withParsedBody($_POST)
-            ->withUploadedFiles(UploadedFiles::fromSuperGlobal()->toArray());
     }
 
     /**

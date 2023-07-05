@@ -91,7 +91,9 @@ final class Spec
             // match the path, query, and fragment into $parts
             preg_match('/^([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/', $requestURI, $parts);
 
-            list(, $path, $query, $fragment) = $parts;
+            $path = $parts[1] ?? '';
+            $query = $parts[2] ?? '';
+            $fragment = $parts[3] ?? '';
 
             return $uri->withPath($path)->withQuery($query)->withFragment($fragment);
         }
