@@ -38,6 +38,9 @@ Arcanum is a collection of packages that work together to create a robust, scala
 ### Arcanum Quill
 [Quill](https://github.com/arcanum-org/framework/tree/main/src/Quill) is a package for logging messages to different logging channels. It uses the excellent [Monolog](https://github.com/Seldaek/monolog) package under the hood.
 
+### Arcanum Toolkit
+[Toolkit](https://github.com/arcanum-org/framework/tree/main/src/Quill) is a collection of utilities, like string manipulation, etc.
+
 ## Arcanum is Different
 Unlike most PHP Frameworks, Arcanum applications don't follow the classic Model-View-Controller (MVC) paradigm.
 
