@@ -59,7 +59,7 @@ class Registry implements Coercible, Serializable
      */
     public function get(string $id): mixed
     {
-        return $this->data[$id] ?? null;
+        return $this->offsetGet($id);
     }
 
     /**
@@ -67,7 +67,7 @@ class Registry implements Coercible, Serializable
      */
     public function has(string $id): bool
     {
-        return isset($this->data[$id]);
+        return $this->offsetExists($id);
     }
 
     /**
@@ -75,7 +75,7 @@ class Registry implements Coercible, Serializable
      */
     public function set(string $id, mixed $value): void
     {
-        $this->data[$id] = $value;
+        $this->offsetSet($id, $value);
     }
 
     /**
@@ -168,7 +168,7 @@ class Registry implements Coercible, Serializable
      */
     public function asString(string $key, string $fallback = ''): string
     {
-        $value = $this->data[$key] ?? $fallback;
+        $value = $this->offsetGet($key) ?? $fallback;
         if (is_scalar($value)) {
             return (string) $value;
         }
@@ -186,7 +186,7 @@ class Registry implements Coercible, Serializable
      */
     public function asInt(string $key, int $fallback = 0): int
     {
-        $value = $this->data[$key] ?? $fallback;
+        $value = $this->offsetGet($key) ?? $fallback;
         if (is_scalar($value)) {
             return (int) $value;
         }
@@ -198,7 +198,7 @@ class Registry implements Coercible, Serializable
      */
     public function asFloat(string $key, float $fallback = 0.0): float
     {
-        $value = $this->data[$key] ?? $fallback;
+        $value = $this->offsetGet($key) ?? $fallback;
         if (is_scalar($value)) {
             return (float) $value;
         }
@@ -210,6 +210,6 @@ class Registry implements Coercible, Serializable
      */
     public function asBool(string $key, bool $fallback = false): bool
     {
-        return (bool) ($this->data[$key] ?? $fallback);
+        return (bool) ($this->offsetGet($key) ?? $fallback);
     }
 }
